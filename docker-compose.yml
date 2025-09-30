@@ -1,5 +1,5 @@
 # Task 2: Docker Compose for local development and testing
-# Simulates multi-container deployment
+# Simulates container deployment for diet analysis application
 
 version: '3.8'
 
@@ -7,40 +7,14 @@ services:
   # Main data analysis application
   diet-analysis:
     build: .
+    container_name: diet-analysis
     volumes:
       - ./data:/app/data
       - ./outputs:/app/outputs
     environment:
       - PYTHONUNBUFFERED=1
-    depends_on:
-      - azurite
-
-  # Azurite for Azure Blob Storage simulation  
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
-    ports:
-      - "10000:10000"  # Blob service
-      - "10001:10001"  # Queue service
-      - "10002:10002"  # Table service
-    volumes:
-      - azurite-data:/workspace
-    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
-
-  # Optional: Local MongoDB for NoSQL simulation
-  mongodb:
-    image: mongo:5.0
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb-data:/data/db
-    environment:
-      - MONGO_INITDB_DATABASE=diet_analysis
-
-volumes:
-  azurite-data:
-  mongodb-data:
 
 # Usage:
-# docker-compose up --build    # Build and start all services
-# docker-compose down          # Stop all services
+# docker-compose up --build    # Build and start the service
+# docker-compose down          # Stop the service
 # docker-compose logs          # View logs
