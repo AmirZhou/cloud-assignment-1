@@ -14,7 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
-COPY data/ ./data/
+# Note: data/ is not copied - mount via volume or use cloud storage
+# For local testing: docker run -v $(pwd)/data:/app/data
 
 # Create output directories
 RUN mkdir -p outputs/visualizations outputs/results
