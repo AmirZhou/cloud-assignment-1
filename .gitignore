@@ -41,7 +41,7 @@ results/
 *.pdf
 
 # Docker
-.dockerignore
+# (We want .dockerignore in version control)
 
 # VS Code
 .vscode/
