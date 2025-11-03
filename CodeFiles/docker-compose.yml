@@ -1,0 +1,20 @@
+# Task 2: Docker Compose for local development and testing
+# Simulates container deployment for diet analysis application
+
+version: '3.8'
+
+services:
+  # Main data analysis application
+  diet-analysis:
+    build: .
+    container_name: diet-analysis
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+    environment:
+      - PYTHONUNBUFFERED=1
+
+# Usage:
+# docker-compose up --build    # Build and start the service
+# docker-compose down          # Stop the service
+# docker-compose logs          # View logs
