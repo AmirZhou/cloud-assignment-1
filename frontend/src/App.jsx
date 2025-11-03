@@ -1,8 +1,8 @@
-import Dashboard from './components/Dashboard';
+import DashboardPremium from './components/DashboardPremium';
 import './index.css';
 
 function App() {
-  return <Dashboard />;
+  return <DashboardPremium />;
 }
 
 export default App;
