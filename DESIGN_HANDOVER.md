@@ -1,173 +1,346 @@
-# Premium Glassmorphic Design System Handover
+# Premium Dark Glassmorphic Design System Handover
 
 ## Overview
-This document provides the complete design system specification for the Nutritional Insights Dashboard's premium glassmorphic interface. The design is inspired by modern glassmorphic UI patterns with multi-layer rim lighting effects, adapted for a light theme.
+This document provides the complete design system specification for the Nutritional Insights Dashboard's premium dark glassmorphic interface with multi-layer rim lighting. The design follows the exact aesthetic from your designer friend's work - pure black backgrounds, sophisticated rim lighting, and blue glow effects on hover.
 
 ## Core Design Principles
 
-### 1. Glassmorphism
+### 1. Dark Glassmorphism
 - **Frosted glass effect** using `backdrop-filter: blur(20px)`
-- Semi-transparent white backgrounds: `rgba(255, 255, 255, 0.85)`
-- Soft, elevated shadows for depth perception
-- Smooth transitions on all interactive elements
+- Semi-transparent white overlays on pure black: `rgba(255, 255, 255, 0.06)`
+- Deep black shadows for extreme depth
+- Pure black (#000000) background
 
-### 2. Rim Lighting
-- Multi-layer border gradients simulating light reflection
+### 2. Multi-Layer Rim Lighting
+- **Outer border**: Static white rim light (subtle, always visible)
+- **Inner border**: Animated blue rim light (intense on hover)
+- **Border gap**: Dark gradient separation layer
 - Light source from top (0-30% of gradient)
-- Dark edges at bottom for contrast (90-100% of gradient)
-- Subtle hover effects that enhance rim visibility
+- Dark shadow at bottom for depth (90-100% of gradient)
 
 ### 3. Animation Philosophy
-- Spring physics for natural motion: `{ type: "spring", stiffness: 300, damping: 25 }`
-- Vertical lift on hover: `y: -4px`
-- Scale transformations: `1.01` for subtle growth
-- Smooth opacity transitions: `0.4s ease`
+- Spring physics for natural motion: `{ type: "spring", stiffness: 400, damping: 30 }`
+- Vertical lift on hover: `y: -2px` (containers), `translateY(-2px)`
+- Opacity transitions: `0.5s cubic-bezier(0.4, 0, 0.2, 1)`
+- Blue glow fades in on hover with radial gradient
 
 ## Color Palette
 
-### Primary Colors
+### Primary Glow Colors (RGB format for CSS variables)
 ```css
---blue-primary: rgba(99, 102, 241, 1);      /* #6366F1 */
---blue-light: rgba(99, 102, 241, 0.1);
---blue-accent: rgba(99, 102, 241, 0.08);
-
---green-primary: rgba(16, 185, 129, 1);     /* #10B981 */
---green-light: rgba(16, 185, 129, 0.1);
---green-accent: rgba(16, 185, 129, 0.05);
-
---purple-primary: rgba(147, 51, 234, 1);    /* #9333EA */
---purple-light: rgba(147, 51, 234, 0.1);
---purple-accent: rgba(147, 51, 234, 0.05);
+--blue-glow: 66, 133, 244;        /* Stadia blue */
+--green-glow: 16, 185, 129;       /* Emerald */
+--purple-glow: 147, 51, 234;      /* Amethyst */
+--red-glow: 239, 68, 68;          /* Crimson */
 ```
 
-### Background Colors
+### Background Colors (Pure Black Theme)
 ```css
---bg-gradient-start: #f8f9fa;
---bg-gradient-end: #e9ecef;
---card-background: rgba(255, 255, 255, 0.85);
---card-background-hover: rgba(255, 255, 255, 0.95);
+--bg-pure-black: #000000;
+--bg-dark-gradient-1: #0a0a0a;
+--bg-dark-gradient-2: #0f0f0f;
+--bg-dark-gradient-3: #1a1a1a;
+
+/* Content backgrounds with blue tint */
+--content-bg-default: linear-gradient(135deg, #0f1922 0%, #0a141c 50%, #060d14 100%);
+--content-bg-hover: linear-gradient(135deg, #1a2e3d 0%, #14222e 50%, #0f1a24 100%);
+
+/* Card backgrounds */
+--card-outer-border: linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%);
+--card-inner-border: linear-gradient(135deg, #0c0c0c 0%, #101010 100%);
+--card-inner-border-hover: linear-gradient(135deg, #0f0f0f 0%, #131313 100%);
 ```
 
-### Shadow System
+### Shadow System (Deep Black Shadows)
 ```css
-/* Soft elevation shadow */
---shadow-card:
-  0 20px 40px rgba(0, 0, 0, 0.04),
-  0 10px 20px rgba(0, 0, 0, 0.02),
-  inset 0 1px 0 rgba(255, 255, 255, 0.9),
-  inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+/* Extreme depth shadows for cards */
+--shadow-card-outer:
+  0 50px 100px rgba(0, 0, 0, 0.9),
+  0 25px 50px rgba(0, 0, 0, 0.7),
+  0 12px 25px rgba(0, 0, 0, 0.5);
 
-/* Hover elevation */
---shadow-card-hover:
-  0 30px 60px rgba(0, 0, 0, 0.06),
-  0 15px 30px rgba(0, 0, 0, 0.03),
-  0 0 0 1px rgba(99, 102, 241, 0.08),
-  inset 0 1px 0 rgba(255, 255, 255, 1),
-  inset 0 -1px 0 rgba(0, 0, 0, 0.03);
-
-/* Stats card subtle shadow */
+/* Stats card shadows */
 --shadow-stats:
-  0 10px 20px rgba(0, 0, 0, 0.03),
-  0 4px 8px rgba(0, 0, 0, 0.02),
-  inset 0 1px 0 rgba(255, 255, 255, 1);
+  0 20px 40px rgba(0, 0, 0, 0.6),
+  0 10px 20px rgba(0, 0, 0, 0.4);
+
+/* Glassmorphic header shadow */
+--shadow-header:
+  0 20px 40px rgba(0, 0, 0, 0.4),
+  inset 0 1px 0 rgba(255, 255, 255, 0.05),
+  inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+
+/* Button shadows */
+--shadow-button:
+  0 4px 12px rgba(0, 0, 0, 0.2);
+
+--shadow-button-hover:
+  0 6px 20px rgba(0, 0, 0, 0.3);
+```
+
+### Text Colors
+```css
+--text-primary: rgba(255, 255, 255, 0.95);
+--text-secondary: rgba(255, 255, 255, 0.6);
+--text-tertiary: rgba(255, 255, 255, 0.5);
+--text-disabled: rgba(255, 255, 255, 0.3);
 ```
 
 ## Component Specifications
 
-### Premium Card Component
+### Multi-Layer Rim Light Card Component
 
-**Purpose**: Main glassmorphic container with rim lighting
+**Purpose**: Main container with multi-layer border structure and animated blue rim lighting
+
+**Structure**:
+1. **Outer Border** (1.5px): Static white rim light
+2. **Border Gap** (6px): Dark gradient separation
+3. **Inner Border** (1px): Animated blue rim light on hover
+4. **Content Wrapper**: Blue glow from top on hover
 
 **CSS Implementation**:
 ```css
-.premium-card {
-  position: relative;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 1px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+/* Container */
+.multi-layer-container {
+  --radius: 24px;
+  --outer-border-width: 1.5px;
+  --inner-border-width: 1px;
+  --gap-between-borders: 6px;
 
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.04),
-    0 10px 20px rgba(0, 0, 0, 0.02),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-/* Rim lighting gradient border */
-.premium-card::before {
+.multi-layer-container:hover {
+  transform: translateY(-2px);
+}
+
+/* OUTER BORDER - Static rim light */
+.outer-border {
+  position: relative;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    135deg,
+    #0a0a0a 0%,
+    #0f0f0f 50%,
+    #0a0a0a 100%
+  );
+  padding: var(--outer-border-width);
+  box-shadow:
+    0 50px 100px rgba(0, 0, 0, 0.9),
+    0 25px 50px rgba(0, 0, 0, 0.7),
+    0 12px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Outer rim light - always visible */
+.outer-border::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 24px;
-  padding: 1.5px;
+  border-radius: var(--radius);
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 0.4) 10%,
-    rgba(255, 255, 255, 0.1) 30%,
-    transparent 60%,
-    rgba(0, 0, 0, 0.02) 90%,
-    rgba(0, 0, 0, 0.05) 100%
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.07) 1.5%,
+    rgba(255, 255, 255, 0.04) 4%,
+    rgba(255, 255, 255, 0.02) 8%,
+    rgba(255, 255, 255, 0.01) 15%,
+    transparent 35%,
+    rgba(0, 0, 0, 0.02) 85%,
+    rgba(0, 0, 0, 0.04) 95%,
+    rgba(0, 0, 0, 0.06) 100%
   );
+  padding: var(--outer-border-width);
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: 0.6;
-  transition: opacity 0.4s ease;
   pointer-events: none;
 }
 
-.premium-card:hover::before {
-  opacity: 1;
-}
-
-/* Top highlight - subtle rim light */
-.premium-card::after {
+/* Outer specular highlight */
+.outer-border::after {
   content: '';
   position: absolute;
-  top: -1px;
-  left: 30%;
-  right: 30%;
-  height: 2px;
+  top: 0;
+  left: 35%;
+  right: 35%;
+  height: 0.5px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.9),
-    rgba(255, 255, 255, 1),
-    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.25),
     transparent
   );
-  border-radius: 50%;
-  filter: blur(1px);
-  opacity: 0;
-  transition: opacity 0.4s ease;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
-.premium-card:hover::after {
+/* GAP between borders */
+.border-gap {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(5, 5, 5, 0.3) 100%
+  );
+  border-radius: calc(var(--radius) - var(--outer-border-width));
+  padding: var(--gap-between-borders);
+}
+
+/* INNER BORDER - Animated blue rim on hover */
+.inner-border {
+  position: relative;
+  border-radius: calc(var(--radius) - var(--outer-border-width) - var(--gap-between-borders));
+  background: linear-gradient(
+    135deg,
+    #0c0c0c 0%,
+    #101010 100%
+  );
+  padding: var(--inner-border-width);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inner-border.hovered {
+  background: linear-gradient(
+    135deg,
+    #0f0f0f 0%,
+    #131313 100%
+  );
+}
+
+/* Inner rim light - subtle by default */
+.inner-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.025) 2%,
+    rgba(255, 255, 255, 0.015) 5%,
+    rgba(255, 255, 255, 0.008) 10%,
+    transparent 25%,
+    rgba(0, 0, 0, 0.01) 90%,
+    rgba(0, 0, 0, 0.02) 100%
+  );
+  padding: var(--inner-border-width);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Blue illumination on hover */
+.inner-border.hovered::before {
+  background: linear-gradient(
+    180deg,
+    rgba(66, 133, 244, 0.3) 0%,
+    rgba(66, 133, 244, 0.22) 1.5%,
+    rgba(66, 133, 244, 0.15) 3%,
+    rgba(66, 133, 244, 0.10) 6%,
+    rgba(66, 133, 244, 0.06) 12%,
+    rgba(66, 133, 244, 0.03) 20%,
+    rgba(66, 133, 244, 0.01) 30%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.02) 90%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  padding: calc(var(--inner-border-width) + 0.3px);
+}
+
+/* Inner specular highlight - blue on hover */
+.inner-border::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(66, 133, 244, 0.4),
+    rgba(66, 133, 244, 0.6),
+    rgba(66, 133, 244, 0.4),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.inner-border.hovered::after {
   opacity: 1;
 }
 
-.premium-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 30px 60px rgba(0, 0, 0, 0.06),
-    0 15px 30px rgba(0, 0, 0, 0.03),
-    0 0 0 1px rgba(99, 102, 241, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+/* CONTENT WRAPPER - Blue glow from top */
+.content-wrapper {
+  position: relative;
+  border-radius: calc(var(--radius) - var(--outer-border-width) - var(--gap-between-borders) - var(--inner-border-width));
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    #0f1922 0%,
+    #0a141c 50%,
+    #060d14 100%
+  );
+  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-wrapper.hovered {
+  background: linear-gradient(
+    135deg,
+    #1a2e3d 0%,
+    #14222e 50%,
+    #0f1a24 100%
+  );
+}
+
+/* Blue glow emanating from top */
+.content-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at top center,
+    rgba(66, 133, 244, 0.12) 0%,
+    rgba(66, 133, 244, 0.08) 15%,
+    rgba(66, 133, 244, 0.04) 30%,
+    rgba(66, 133, 244, 0.02) 45%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.content-wrapper.hovered::before {
+  opacity: 1;
+}
+
+/* Inner content */
+.inner-content {
+  position: relative;
+  padding: 1.5rem;
+  z-index: 1;
 }
 ```
 
 **Framer Motion Props**:
 ```jsx
 <motion.div
-  whileHover={{ y: -4 }}
-  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+  whileHover={{ y: -2 }}
+  transition={{ type: "spring", stiffness: 400, damping: 30 }}
 >
 ```
 
