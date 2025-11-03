@@ -138,7 +138,7 @@ const DashboardPremium = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="section-title">Data Interaction</h2>
+          <h2 className="section-title mb-6">Data Interaction</h2>
           <div className="flex flex-wrap gap-4">
             <PremiumButton onClick={loadInsights} disabled={loading} variant="primary">
               {loading ? 'Loading...' : 'Refresh Insights'}
@@ -286,20 +286,20 @@ const DashboardPremium = () => {
            ============================================ */
 
         .premium-dark-background {
-          background: #000000;
+          background: linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%);
           min-height: 100vh;
         }
 
-        /* Dark Glassmorphic Header */
+        /* Dark Glassmorphic Header - Premium lighter grey */
         .dark-glassmorphic-header {
           position: relative;
-          background: rgba(255, 255, 255, 0.06);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          background: linear-gradient(135deg, rgba(25, 25, 28, 0.7) 0%, rgba(20, 20, 23, 0.75) 100%);
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           box-shadow:
             0 20px 40px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
             inset 0 -1px 0 rgba(0, 0, 0, 0.3);
         }
 
@@ -341,9 +341,9 @@ const DashboardPremium = () => {
           color: rgba(255, 255, 255, 0.5);
         }
 
-        /* Dark Card - Basic */
+        /* Dark Card - Basic - Premium lighter grey */
         .dark-card {
-          background: rgba(255, 255, 255, 0.04);
+          background: linear-gradient(135deg, rgba(25, 25, 28, 0.75) 0%, rgba(20, 20, 23, 0.8) 100%);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border-radius: 20px;
@@ -362,10 +362,11 @@ const DashboardPremium = () => {
           color: rgba(239, 68, 68, 0.9);
         }
 
-        /* Footer */
+        /* Footer - Premium lighter grey */
         .dark-glassmorphic-footer {
-          background: rgba(255, 255, 255, 0.04);
-          backdrop-filter: blur(20px);
+          background: linear-gradient(135deg, rgba(25, 25, 28, 0.7) 0%, rgba(20, 20, 23, 0.75) 100%);
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           margin-top: 80px;
         }
@@ -438,7 +439,7 @@ const MultiLayerCard = ({ children }) => {
             0 12px 25px rgba(0, 0, 0, 0.5);
         }
 
-        /* Outer rim light */
+        /* Outer rim light - sharper, more defined */
         .outer-border::before {
           content: '';
           position: absolute;
@@ -446,15 +447,15 @@ const MultiLayerCard = ({ children }) => {
           border-radius: var(--radius);
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.10) 0%,
-            rgba(255, 255, 255, 0.07) 1.5%,
-            rgba(255, 255, 255, 0.04) 4%,
-            rgba(255, 255, 255, 0.02) 8%,
-            rgba(255, 255, 255, 0.01) 15%,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.12) 1.5%,
+            rgba(255, 255, 255, 0.08) 4%,
+            rgba(255, 255, 255, 0.04) 8%,
+            rgba(255, 255, 255, 0.02) 15%,
             transparent 35%,
-            rgba(0, 0, 0, 0.02) 85%,
-            rgba(0, 0, 0, 0.04) 95%,
-            rgba(0, 0, 0, 0.06) 100%
+            rgba(0, 0, 0, 0.04) 85%,
+            rgba(0, 0, 0, 0.08) 95%,
+            rgba(0, 0, 0, 0.12) 100%
           );
           padding: var(--outer-border-width);
           -webkit-mask:
@@ -463,23 +464,42 @@ const MultiLayerCard = ({ children }) => {
           -webkit-mask-composite: xor;
           mask-composite: exclude;
           pointer-events: none;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Outer specular highlight */
+        /* Stronger outer rim light on hover */
+        .multi-layer-container:hover .outer-border::before {
+          background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.28) 0%,
+            rgba(255, 255, 255, 0.20) 1.5%,
+            rgba(255, 255, 255, 0.14) 4%,
+            rgba(255, 255, 255, 0.08) 8%,
+            rgba(255, 255, 255, 0.04) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.06) 85%,
+            rgba(0, 0, 0, 0.10) 95%,
+            rgba(0, 0, 0, 0.16) 100%
+          );
+        }
+
+        /* Outer specular highlight - sharper */
         .outer-border::after {
           content: '';
           position: absolute;
           top: 0;
           left: 35%;
           right: 35%;
-          height: 0.5px;
+          height: 1px;
           background: linear-gradient(
             90deg,
             transparent,
-            rgba(255, 255, 255, 0.25),
+            rgba(255, 255, 255, 0.4),
+            rgba(255, 255, 255, 0.6),
+            rgba(255, 255, 255, 0.4),
             transparent
           );
-          opacity: 0.6;
+          opacity: 0.8;
           pointer-events: none;
         }
 
@@ -515,7 +535,7 @@ const MultiLayerCard = ({ children }) => {
           );
         }
 
-        /* Inner rim light */
+        /* Inner rim light - slightly weaker than outer */
         .inner-border::before {
           content: '';
           position: absolute;
@@ -523,13 +543,15 @@ const MultiLayerCard = ({ children }) => {
           border-radius: inherit;
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.04) 0%,
-            rgba(255, 255, 255, 0.025) 2%,
-            rgba(255, 255, 255, 0.015) 5%,
-            rgba(255, 255, 255, 0.008) 10%,
-            transparent 25%,
-            rgba(0, 0, 0, 0.01) 90%,
-            rgba(0, 0, 0, 0.02) 100%
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0.10) 1.5%,
+            rgba(255, 255, 255, 0.06) 4%,
+            rgba(255, 255, 255, 0.03) 8%,
+            rgba(255, 255, 255, 0.015) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.03) 85%,
+            rgba(0, 0, 0, 0.06) 95%,
+            rgba(0, 0, 0, 0.10) 100%
           );
           padding: var(--inner-border-width);
           -webkit-mask:
@@ -541,25 +563,13 @@ const MultiLayerCard = ({ children }) => {
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Blue illumination on hover */
+        /* Entire border illuminated uniformly on hover - weaker than outer */
         .inner-border.hovered::before {
-          background: linear-gradient(
-            180deg,
-            rgba(66, 133, 244, 0.3) 0%,
-            rgba(66, 133, 244, 0.22) 1.5%,
-            rgba(66, 133, 244, 0.15) 3%,
-            rgba(66, 133, 244, 0.10) 6%,
-            rgba(66, 133, 244, 0.06) 12%,
-            rgba(66, 133, 244, 0.03) 20%,
-            rgba(66, 133, 244, 0.01) 30%,
-            transparent 50%,
-            rgba(0, 0, 0, 0.02) 90%,
-            rgba(0, 0, 0, 0.04) 100%
-          );
+          background: rgba(255, 255, 255, 0.18);
           padding: calc(var(--inner-border-width) + 0.3px);
         }
 
-        /* Inner specular highlight */
+        /* Inner specular highlight - white on hover */
         .inner-border::after {
           content: '';
           position: absolute;
@@ -570,9 +580,9 @@ const MultiLayerCard = ({ children }) => {
           background: linear-gradient(
             90deg,
             transparent,
-            rgba(66, 133, 244, 0.4),
-            rgba(66, 133, 244, 0.6),
-            rgba(66, 133, 244, 0.4),
+            rgba(255, 255, 255, 0.5),
+            rgba(255, 255, 255, 0.7),
+            rgba(255, 255, 255, 0.5),
             transparent
           );
           opacity: 0;
@@ -584,30 +594,32 @@ const MultiLayerCard = ({ children }) => {
           opacity: 1;
         }
 
-        /* CONTENT WRAPPER */
+        /* CONTENT WRAPPER - Premium lighter grey with transparency */
         .content-wrapper {
           position: relative;
           border-radius: calc(var(--radius) - var(--outer-border-width) - var(--gap-between-borders) - var(--inner-border-width));
           overflow: hidden;
           background: linear-gradient(
             135deg,
-            #0f1922 0%,
-            #0a141c 50%,
-            #060d14 100%
+            rgba(25, 25, 28, 0.75) 0%,
+            rgba(20, 20, 23, 0.8) 50%,
+            rgba(18, 18, 20, 0.85) 100%
           );
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .content-wrapper.hovered {
           background: linear-gradient(
             135deg,
-            #1a2e3d 0%,
-            #14222e 50%,
-            #0f1a24 100%
+            rgba(28, 30, 35, 0.8) 0%,
+            rgba(22, 24, 28, 0.85) 50%,
+            rgba(20, 22, 25, 0.9) 100%
           );
         }
 
-        /* Blue glow from top */
+        /* Subtle white glow from top - matches rim light */
         .content-wrapper::before {
           content: '';
           position: absolute;
@@ -618,11 +630,10 @@ const MultiLayerCard = ({ children }) => {
           height: 80%;
           background: radial-gradient(
             ellipse at top center,
-            rgba(66, 133, 244, 0.12) 0%,
-            rgba(66, 133, 244, 0.08) 15%,
-            rgba(66, 133, 244, 0.04) 30%,
-            rgba(66, 133, 244, 0.02) 45%,
-            transparent 70%
+            rgba(255, 255, 255, 0.04) 0%,
+            rgba(255, 255, 255, 0.02) 15%,
+            rgba(255, 255, 255, 0.01) 30%,
+            transparent 50%
           );
           opacity: 0;
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -699,18 +710,37 @@ const StatsCard = ({ title, value, color }) => {
           border-radius: var(--radius);
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.08) 0%,
-            rgba(255, 255, 255, 0.04) 5%,
-            rgba(255, 255, 255, 0.02) 10%,
-            transparent 30%,
-            rgba(0, 0, 0, 0.02) 90%,
-            rgba(0, 0, 0, 0.04) 100%
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.12) 1.5%,
+            rgba(255, 255, 255, 0.08) 4%,
+            rgba(255, 255, 255, 0.04) 8%,
+            rgba(255, 255, 255, 0.02) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.04) 85%,
+            rgba(0, 0, 0, 0.08) 95%,
+            rgba(0, 0, 0, 0.12) 100%
           );
           padding: var(--outer-width);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
           pointer-events: none;
+          transition: all 0.4s ease;
+        }
+
+        .stats-multi-layer:hover .stats-outer::before {
+          background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.28) 0%,
+            rgba(255, 255, 255, 0.20) 1.5%,
+            rgba(255, 255, 255, 0.14) 4%,
+            rgba(255, 255, 255, 0.08) 8%,
+            rgba(255, 255, 255, 0.04) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.06) 85%,
+            rgba(0, 0, 0, 0.10) 95%,
+            rgba(0, 0, 0, 0.16) 100%
+          );
         }
 
         .stats-gap {
@@ -738,9 +768,15 @@ const StatsCard = ({ title, value, color }) => {
           border-radius: inherit;
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.03) 0%,
-            rgba(255, 255, 255, 0.015) 5%,
-            transparent 20%
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0.10) 1.5%,
+            rgba(255, 255, 255, 0.06) 4%,
+            rgba(255, 255, 255, 0.03) 8%,
+            rgba(255, 255, 255, 0.015) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.03) 85%,
+            rgba(0, 0, 0, 0.06) 95%,
+            rgba(0, 0, 0, 0.10) 100%
           );
           padding: var(--inner-width);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -751,28 +787,21 @@ const StatsCard = ({ title, value, color }) => {
         }
 
         .stats-inner.hovered::before {
-          background: linear-gradient(
-            180deg,
-            rgba(var(--glow-color), 0.25) 0%,
-            rgba(var(--glow-color), 0.15) 3%,
-            rgba(var(--glow-color), 0.08) 8%,
-            rgba(var(--glow-color), 0.04) 15%,
-            transparent 35%,
-            rgba(0, 0, 0, 0.02) 90%,
-            rgba(0, 0, 0, 0.04) 100%
-          );
+          background: rgba(255, 255, 255, 0.18);
         }
 
         .stats-content-wrapper {
           position: relative;
           border-radius: calc(var(--radius) - var(--outer-width) - var(--gap) - var(--inner-width));
-          background: linear-gradient(135deg, #0d0d0d 0%, #0a0a0a 100%);
+          background: linear-gradient(135deg, rgba(25, 25, 28, 0.75) 0%, rgba(20, 20, 23, 0.8) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           transition: background 0.4s ease;
           overflow: hidden;
         }
 
         .stats-content-wrapper.hovered {
-          background: linear-gradient(135deg, #0f1520 0%, #0a0f18 100%);
+          background: linear-gradient(135deg, rgba(28, 30, 35, 0.8) 0%, rgba(22, 24, 28, 0.85) 100%);
         }
 
         .stats-content-wrapper::before {
@@ -785,8 +814,8 @@ const StatsCard = ({ title, value, color }) => {
           height: 100%;
           background: radial-gradient(
             ellipse at top center,
-            rgba(var(--glow-color), 0.1) 0%,
-            rgba(var(--glow-color), 0.05) 30%,
+            rgba(255, 255, 255, 0.04) 0%,
+            rgba(255, 255, 255, 0.02) 30%,
             transparent 60%
           );
           opacity: 0;
@@ -880,18 +909,37 @@ const ChartCard = ({ title, children, delay = 0 }) => {
           border-radius: var(--radius);
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.10) 0%,
-            rgba(255, 255, 255, 0.05) 4%,
-            rgba(255, 255, 255, 0.02) 10%,
-            transparent 30%,
-            rgba(0, 0, 0, 0.02) 85%,
-            rgba(0, 0, 0, 0.06) 100%
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.12) 1.5%,
+            rgba(255, 255, 255, 0.08) 4%,
+            rgba(255, 255, 255, 0.04) 8%,
+            rgba(255, 255, 255, 0.02) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.04) 85%,
+            rgba(0, 0, 0, 0.08) 95%,
+            rgba(0, 0, 0, 0.12) 100%
           );
           padding: var(--outer-width);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
           pointer-events: none;
+          transition: all 0.5s ease;
+        }
+
+        .chart-multi-layer:hover .chart-outer::before {
+          background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.28) 0%,
+            rgba(255, 255, 255, 0.20) 1.5%,
+            rgba(255, 255, 255, 0.14) 4%,
+            rgba(255, 255, 255, 0.08) 8%,
+            rgba(255, 255, 255, 0.04) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.06) 85%,
+            rgba(0, 0, 0, 0.10) 95%,
+            rgba(0, 0, 0, 0.16) 100%
+          );
         }
 
         .chart-gap {
@@ -919,9 +967,15 @@ const ChartCard = ({ title, children, delay = 0 }) => {
           border-radius: inherit;
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.04) 0%,
-            rgba(255, 255, 255, 0.02) 5%,
-            transparent 20%
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0.10) 1.5%,
+            rgba(255, 255, 255, 0.06) 4%,
+            rgba(255, 255, 255, 0.03) 8%,
+            rgba(255, 255, 255, 0.015) 15%,
+            transparent 35%,
+            rgba(0, 0, 0, 0.03) 85%,
+            rgba(0, 0, 0, 0.06) 95%,
+            rgba(0, 0, 0, 0.10) 100%
           );
           padding: var(--inner-width);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -932,29 +986,21 @@ const ChartCard = ({ title, children, delay = 0 }) => {
         }
 
         .chart-inner.hovered::before {
-          background: linear-gradient(
-            180deg,
-            rgba(66, 133, 244, 0.3) 0%,
-            rgba(66, 133, 244, 0.2) 2%,
-            rgba(66, 133, 244, 0.12) 5%,
-            rgba(66, 133, 244, 0.06) 12%,
-            rgba(66, 133, 244, 0.03) 20%,
-            transparent 40%,
-            rgba(0, 0, 0, 0.02) 90%,
-            rgba(0, 0, 0, 0.04) 100%
-          );
+          background: rgba(255, 255, 255, 0.18);
         }
 
         .chart-content-wrapper {
           position: relative;
           border-radius: calc(var(--radius) - var(--outer-width) - var(--gap) - var(--inner-width));
-          background: linear-gradient(135deg, #0f1922 0%, #0a141c 50%, #060d14 100%);
+          background: linear-gradient(135deg, rgba(25, 25, 28, 0.75) 0%, rgba(20, 20, 23, 0.8) 50%, rgba(18, 18, 20, 0.85) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           overflow: hidden;
           transition: background 0.5s ease;
         }
 
         .chart-content-wrapper.hovered {
-          background: linear-gradient(135deg, #1a2e3d 0%, #14222e 50%, #0f1a24 100%);
+          background: linear-gradient(135deg, rgba(28, 30, 35, 0.8) 0%, rgba(22, 24, 28, 0.85) 50%, rgba(20, 22, 25, 0.9) 100%);
         }
 
         .chart-content-wrapper::before {
@@ -967,9 +1013,9 @@ const ChartCard = ({ title, children, delay = 0 }) => {
           height: 80%;
           background: radial-gradient(
             ellipse at top center,
-            rgba(66, 133, 244, 0.12) 0%,
-            rgba(66, 133, 244, 0.08) 15%,
-            rgba(66, 133, 244, 0.04) 30%,
+            rgba(255, 255, 255, 0.04) 0%,
+            rgba(255, 255, 255, 0.02) 15%,
+            rgba(255, 255, 255, 0.01) 30%,
             transparent 60%
           );
           opacity: 0;
@@ -1077,42 +1123,111 @@ const PremiumButton = ({ children, onClick, disabled, variant = 'primary' }) => 
 
 const DarkGlassInput = ({ className, ...props }) => {
   return (
-    <input
-      {...props}
-      className={`dark-glass-input ${className || ''}`}
-      style={{
-        padding: '0.75rem 1rem',
-        background: 'rgba(255, 255, 255, 0.06)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '100px',
-        color: 'rgba(255, 255, 255, 0.9)',
-        fontSize: '0.9375rem',
-        transition: 'all 0.3s ease',
-      }}
-    />
+    <>
+      <input
+        {...props}
+        className={`dark-glass-input ${className || ''}`}
+        style={{
+          padding: '0.75rem 1.25rem',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.06) 100%)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: '16px',
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: '0.9375rem',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      />
+      <style jsx global>{`
+        .dark-glass-input::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .dark-glass-input:hover {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.08) 100%);
+          border-color: rgba(255, 255, 255, 0.15);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark-glass-input:focus {
+          outline: none;
+          border-color: rgba(255, 255, 255, 0.25);
+          box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08), 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+      `}</style>
+    </>
   );
 };
 
 const DarkGlassSelect = ({ children, ...props }) => {
   return (
-    <select
-      {...props}
-      className="dark-glass-select"
-      style={{
-        padding: '0.75rem 1rem',
-        background: 'rgba(255, 255, 255, 0.06)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '100px',
-        color: 'rgba(255, 255, 255, 0.9)',
-        fontSize: '0.9375rem',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      {children}
-    </select>
+    <>
+      <select
+        {...props}
+        className="dark-glass-select"
+        style={{
+          padding: '0.75rem 2.5rem 0.75rem 1.25rem',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.06) 100%)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: '16px',
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: '0.9375rem',
+          fontWeight: '500',
+          cursor: 'pointer',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          MozAppearance: 'none',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='rgba(255,255,255,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 1rem center',
+          minWidth: '200px',
+        }}
+      >
+        {children}
+      </select>
+      <style jsx global>{`
+        .dark-glass-select {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          color-scheme: dark;
+        }
+
+        .dark-glass-select option {
+          background-color: #1a1a1a !important;
+          background: #1a1a1a !important;
+          color: rgba(255, 255, 255, 0.9) !important;
+          padding: 0.75rem 1rem;
+          font-weight: 500;
+        }
+
+        .dark-glass-select option:hover {
+          background-color: #252525 !important;
+          background: #252525 !important;
+          color: rgba(255, 255, 255, 1) !important;
+        }
+
+        .dark-glass-select option:checked {
+          background-color: #2a2a2a !important;
+          background: #2a2a2a !important;
+          color: rgba(255, 255, 255, 1) !important;
+        }
+
+        .dark-glass-select:hover {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.08) 100%);
+          border-color: rgba(255, 255, 255, 0.15);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .dark-glass-select:focus {
+          outline: none;
+          border-color: rgba(255, 255, 255, 0.25);
+          box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08), 0 6px 20px rgba(0, 0, 0, 0.35);
+        }
+      `}</style>
+    </>
   );
 };
 

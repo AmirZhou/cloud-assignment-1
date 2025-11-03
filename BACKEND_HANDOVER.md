@@ -50,11 +50,6 @@ Production (Azure):
 npm install -g azure-functions-core-tools@4
 ```
 
-**Mac:**
-```bash
-brew tap azure/functions
-brew install azure-functions-core-tools@4
-```
 
 ### Step 2: Create Azure Function Project
 
