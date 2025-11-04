@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchInsights, fetchRecipes, fetchCharts } from '../services/api';
 import BarChart from './BarChart';
-import PieChart from './PieChart';
-import ScatterChart from './ScatterChart';
-import HeatmapChart from './HeatmapChart';
 
 const DashboardPremium = () => {
   const [insights, setInsights] = useState(null);
