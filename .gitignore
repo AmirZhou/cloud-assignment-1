@@ -69,3 +69,6 @@ debug.log
 azure-credentials.json
 *.pem
 *.key
+
+# Local settings for Azure Functions
+local.settings.json
