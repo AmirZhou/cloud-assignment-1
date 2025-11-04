@@ -20,10 +20,26 @@ const DashboardPremium = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchInsights();
-      setInsights(data);
+      const response = await fetchInsights();
+      // Backend wraps data in { status, data: { insights, data_stats }, ... }
+      const insightsData = response.data?.insights || response;
+      const dataStats = response.data?.data_stats || {};
+
+      // Transform to match component expectations
+      setInsights({
+        total_recipes: dataStats.total_recipes || insightsData.summary?.total_recipes_analyzed || 0,
+        diet_types: dataStats.diet_types || insightsData.summary?.diet_types_count || 0,
+        processing_status: response.status || 'unknown',
+        average_macronutrients: Object.entries(insightsData.average_macronutrients || {}).map(([diet, macros]) => ({
+          Diet_type: diet,
+          ...macros
+        })),
+        diet_distribution: insightsData.diet_distribution,
+        protein_carbs_scatter: insightsData.protein_carbs_scatter,
+        correlation_heatmap: insightsData.correlation_heatmap
+      });
     } catch (err) {
-      setError('Failed to load nutritional insights. Make sure the API server is running on port 5000.');
+      setError('Failed to load nutritional insights. Make sure the backend API is accessible.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -34,8 +50,20 @@ const DashboardPremium = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchRecipes();
-      setRecipes(data.recipes);
+      const response = await fetchRecipes();
+      // Backend wraps data in { status, data: { recipes }, ... }
+      const recipesData = response.data?.insights?.top_5_protein_recipes ||
+                          response.data?.recipes ||
+                          response.recipes ||
+                          [];
+      setRecipes(recipesData.map(recipe => ({
+        Recipe_name: recipe.recipe_name,
+        Diet_type: recipe.diet_type,
+        Cuisine_type: recipe.cuisine_type || 'N/A',
+        'Protein(g)': recipe.protein_g || recipe['Protein(g)'] || 0,
+        'Carbs(g)': recipe.carbs_g || recipe['Carbs(g)'] || 0,
+        'Fat(g)': recipe.fat_g || recipe['Fat(g)'] || 0
+      })));
     } catch (err) {
       setError('Failed to load recipes');
       console.error(err);
