@@ -243,32 +243,65 @@ const Dashboard = () => {
         {insights && (
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">Nutritional Insights</h2>
+            {charts?.execution_time && (
+              <p className="text-sm text-gray-600 mb-2">
+                Chart generation time: {charts.execution_time}
+              </p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Bar Chart */}
+              {/* Bar Chart - Use Chart.js */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Average Macronutrients</h3>
                 <div className="h-80">
                   <BarChart data={insights.average_macronutrients} />
                 </div>
               </div>
 
-              {/* Pie Chart */}
+              {/* Heatmap - Backend Image */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
-                <div className="h-80">
-                  <PieChart data={charts?.diet_distribution} />
+                <h3 className="text-lg font-semibold mb-2">Nutrient Correlations</h3>
+                <div className="h-80 flex items-center justify-center">
+                  {charts?.heatmap ? (
+                    <img
+                      src={charts.heatmap}
+                      alt="Nutrient Correlation Heatmap"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-gray-500">Loading heatmap...</div>
+                  )}
                 </div>
               </div>
 
-              {/* Scatter Plot */}
+              {/* Scatter Plot - Backend Image */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
-                <div className="h-80">
-                  <ScatterChart data={charts?.protein_carbs_scatter} />
+                <h3 className="text-lg font-semibold mb-2">Protein vs Carbs</h3>
+                <div className="h-80 flex items-center justify-center">
+                  {charts?.scatter_plot ? (
+                    <img
+                      src={charts.scatter_plot}
+                      alt="Protein vs Carbs Scatter Plot"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-gray-500">Loading scatter plot...</div>
+                  )}
                 </div>
               </div>
 
-              {/* Heatmap */}
+              {/* Bar Chart (Backend) - Backend Image */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
-                <div className="h-80">
-                  <HeatmapChart data={charts?.correlation_heatmap} />
+                <h3 className="text-lg font-semibold mb-2">Recipe Distribution</h3>
+                <div className="h-80 flex items-center justify-center">
+                  {charts?.bar_chart ? (
+                    <img
+                      src={charts.bar_chart}
+                      alt="Recipe Distribution by Diet"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-gray-500">Loading chart...</div>
+                  )}
                 </div>
               </div>
             </div>
