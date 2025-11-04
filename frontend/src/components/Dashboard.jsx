@@ -244,21 +244,21 @@ const Dashboard = () => {
               {/* Pie Chart */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
                 <div className="h-80">
-                  <PieChart data={insights.diet_distribution} />
+                  <PieChart data={charts?.diet_distribution} />
                 </div>
               </div>
 
               {/* Scatter Plot */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
                 <div className="h-80">
-                  <ScatterChart data={insights.protein_carbs_scatter} />
+                  <ScatterChart data={charts?.protein_carbs_scatter} />
                 </div>
               </div>
 
               {/* Heatmap */}
               <div className="bg-white p-6 shadow-lg rounded-lg">
                 <div className="h-80">
-                  <HeatmapChart data={insights.correlation_heatmap} />
+                  <HeatmapChart data={charts?.correlation_heatmap} />
                 </div>
               </div>
             </div>
