@@ -35,16 +35,27 @@ const Dashboard = () => {
         average_macronutrients: Object.entries(insightsData.average_macronutrients || {}).map(([diet, macros]) => ({
           Diet_type: diet,
           ...macros
-        })),
-        diet_distribution: insightsData.diet_distribution,
-        protein_carbs_scatter: insightsData.protein_carbs_scatter,
-        correlation_heatmap: insightsData.correlation_heatmap
+        }))
       });
+
+      // Load charts separately
+      loadCharts();
     } catch (err) {
       setError('Failed to load nutritional insights. Make sure the backend API is accessible.');
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCharts = async () => {
+    try {
+      const response = await fetchCharts();
+      const chartsData = response.data?.charts || response.charts || {};
+      setCharts(chartsData);
+    } catch (err) {
+      console.error('Failed to load charts:', err);
+      // Don't show error to user, just keep charts as null
     }
   };
 
