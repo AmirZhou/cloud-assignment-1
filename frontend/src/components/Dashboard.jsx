@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchInsights, fetchRecipes, fetchCharts } from '../services/api';
 import BarChart from './BarChart';
-import PieChart from './PieChart';
-import ScatterChart from './ScatterChart';
-import HeatmapChart from './HeatmapChart';
 
 const Dashboard = () => {
   const [insights, setInsights] = useState(null);
