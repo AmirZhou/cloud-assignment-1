@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchInsights, fetchRecipes } from '../services/api';
+import { fetchInsights, fetchRecipes, fetchCharts } from '../services/api';
 import BarChart from './BarChart';
 import PieChart from './PieChart';
 import ScatterChart from './ScatterChart';
@@ -8,6 +8,7 @@ import HeatmapChart from './HeatmapChart';
 const Dashboard = () => {
   const [insights, setInsights] = useState(null);
   const [recipes, setRecipes] = useState([]);
+  const [charts, setCharts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedDiet, setSelectedDiet] = useState('all');
