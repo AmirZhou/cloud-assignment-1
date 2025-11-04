@@ -248,18 +248,47 @@ const DashboardPremium = () => {
             transition={{ delay: 0.4 }}
           >
             <h2 className="section-title mb-6">Nutritional Insights</h2>
+            {charts?.execution_time && (
+              <p className="text-sm secondary-text mb-4">
+                Chart generation time: {charts.execution_time}
+              </p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <ChartCard title="Average Macronutrients" delay={0.1}>
                 <BarChart data={insights.average_macronutrients} />
               </ChartCard>
-              <ChartCard title="Recipe Distribution" delay={0.2}>
-                <PieChart data={charts?.diet_distribution} />
+              <ChartCard title="Nutrient Correlations" delay={0.2}>
+                {charts?.heatmap ? (
+                  <img
+                    src={charts.heatmap}
+                    alt="Nutrient Correlation Heatmap"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="secondary-text">Loading heatmap...</div>
+                )}
               </ChartCard>
               <ChartCard title="Protein vs Carbs" delay={0.3}>
-                <ScatterChart data={charts?.protein_carbs_scatter} />
+                {charts?.scatter_plot ? (
+                  <img
+                    src={charts.scatter_plot}
+                    alt="Protein vs Carbs Scatter Plot"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="secondary-text">Loading scatter plot...</div>
+                )}
               </ChartCard>
-              <ChartCard title="Nutrient Correlations" delay={0.4}>
-                <HeatmapChart data={charts?.correlation_heatmap} />
+              <ChartCard title="Recipe Distribution" delay={0.4}>
+                {charts?.bar_chart ? (
+                  <img
+                    src={charts.bar_chart}
+                    alt="Recipe Distribution by Diet"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="secondary-text">Loading chart...</div>
+                )}
               </ChartCard>
             </div>
           </motion.section>
