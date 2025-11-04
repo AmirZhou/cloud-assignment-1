@@ -6,13 +6,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 /**
  * Fetch all nutritional insights
  * Returns: {
- *   total_recipes, diet_types, average_macronutrients,
- *   diet_distribution, protein_carbs_scatter, correlation_heatmap
+ *   status, data: { insights, data_stats }, execution_time, timestamp, message
  * }
  */
 export const fetchInsights = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/insights`);
+    const response = await axios.get(`${API_BASE_URL}/api/get-insights`);
     return response.data;
   } catch (error) {
     console.error('Error fetching insights:', error);
@@ -22,13 +21,32 @@ export const fetchInsights = async () => {
 
 /**
  * Fetch top recipes by protein
+ * Returns: {
+ *   status, data: { recipes }, execution_time, timestamp, message
+ * }
  */
 export const fetchRecipes = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/recipes`);
+    const response = await axios.get(`${API_BASE_URL}/api/get-recipes`);
     return response.data;
   } catch (error) {
     console.error('Error fetching recipes:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch chart data
+ * Returns: {
+ *   status, data: { charts }, execution_time, timestamp, message
+ * }
+ */
+export const fetchCharts = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/get-charts`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching charts:', error);
     throw error;
   }
 };
