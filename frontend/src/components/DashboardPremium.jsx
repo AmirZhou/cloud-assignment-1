@@ -246,13 +246,13 @@ const DashboardPremium = () => {
                 <BarChart data={insights.average_macronutrients} />
               </ChartCard>
               <ChartCard title="Recipe Distribution" delay={0.2}>
-                <PieChart data={insights.diet_distribution} />
+                <PieChart data={charts?.diet_distribution} />
               </ChartCard>
               <ChartCard title="Protein vs Carbs" delay={0.3}>
-                <ScatterChart data={insights.protein_carbs_scatter} />
+                <ScatterChart data={charts?.protein_carbs_scatter} />
               </ChartCard>
               <ChartCard title="Nutrient Correlations" delay={0.4}>
-                <HeatmapChart data={insights.correlation_heatmap} />
+                <HeatmapChart data={charts?.correlation_heatmap} />
               </ChartCard>
             </div>
           </motion.section>
