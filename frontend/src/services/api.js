@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API base URL - change this when deploying to Azure
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// API base URL - automatically uses the correct environment based on mode
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 /**
  * Fetch all nutritional insights
