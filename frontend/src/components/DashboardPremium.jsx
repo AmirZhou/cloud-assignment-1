@@ -6,6 +6,7 @@ import BarChart from './BarChart';
 const DashboardPremium = () => {
   const [insights, setInsights] = useState(null);
   const [recipes, setRecipes] = useState([]);
+  const [recipeMeta, setRecipeMeta] = useState(null);
   const [charts, setCharts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,10 +55,12 @@ const DashboardPremium = () => {
       // Backend returns base64 image strings
       if (response.data) {
         setCharts({
+          processing_status: response.status || 'unknown',
+          execution_time: response.execution_time,
+          timestamp: response.timestamp,
           bar_chart: response.data.bar_chart,
           heatmap: response.data.heatmap,
           scatter_plot: response.data.scatter_plot,
-          execution_time: response.execution_time
         });
       }
     } catch (err) {
@@ -83,6 +86,13 @@ const DashboardPremium = () => {
         'Carbs(g)': recipe.carbs_g || recipe['Carbs(g)'] || 0,
         'Fat(g)': recipe.fat_g || recipe['Fat(g)'] || 0
       })));
+      setRecipeMeta({
+        execution_time:
+          response.data?.insights?.execution_time ||
+          response.execution_time ||
+          0,
+        timestamp: response.timestamp || new Date().toISOString()
+      });
     } catch (err) {
       setError('Failed to load recipes');
       console.error(err);
@@ -93,6 +103,7 @@ const DashboardPremium = () => {
 
   useEffect(() => {
     loadInsights();
+    loadRecipes();
   }, []);
 
   // Filter and pagination logic
@@ -160,8 +171,8 @@ const DashboardPremium = () => {
               color="16, 185, 129"
             />
             <StatsCard
-              title="Processing Status"
-              value={insights.processing_status}
+              title="Insight Generation Time"
+              value={insights.execution_time}
               color="147, 51, 234"
             />
           </motion.section>
@@ -187,13 +198,29 @@ const DashboardPremium = () => {
         >
           <h2 className="section-title mb-6">Data Interaction</h2>
           <div className="flex flex-wrap gap-4">
-            <PremiumButton onClick={loadInsights} disabled={loading} variant="primary">
-              {loading ? 'Loading...' : 'Refresh Insights'}
-            </PremiumButton>
-            <PremiumButton onClick={loadRecipes} disabled={loading} variant="secondary">
-              Get Top Recipes
-            </PremiumButton>
-          </div>
+              <PremiumButton onClick={loadRecipes} disabled={loading} variant="primary">
+                Search Recipes
+              </PremiumButton>
+
+              <PremiumButton
+                onClick={async() => {
+                  setCurrentPage(1);
+                  await loadRecipes();
+                }}
+                disabled={loading}
+                variant="secondary"
+              >
+                {loading ? 'Loading...' : 'Refresh Recipes'}
+              </PremiumButton>
+
+              <PremiumButton onClick={loadInsights} disabled={loading} variant="secondary">
+                Refresh Insights
+              </PremiumButton>
+
+              <PremiumButton onClick={loadChartImages} disabled={loading} variant="secondary">
+                Refresh Chart
+              </PremiumButton>
+            </div>
         </motion.section>
 
         {/* Search and Filters */}
@@ -225,7 +252,7 @@ const DashboardPremium = () => {
                 ))}
               </DarkGlassSelect>
               {searchQuery && (
-                <PremiumButton onClick={() => setSearchQuery('')} variant="ghost">
+                <PremiumButton onClick={() => setSearchQuery('')} variant="primary">
                   Clear Search
                 </PremiumButton>
               )}
@@ -247,43 +274,45 @@ const DashboardPremium = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <h2 className="section-title mb-6">Nutritional Insights</h2>
-            {charts?.execution_time && (
+            <h2 className="section-title mb-6">Nutritional Charts</h2>
+            {charts?.processing_status && (
+              // Meta data for chart generation
               <p className="text-sm secondary-text mb-4">
-                Chart generation time: {charts.execution_time}
+                Chart generation time: {charts.execution_time} <br />
+                Generated at: {charts.timestamp}
               </p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ChartCard title="Average Macronutrients" delay={0.1}>
+              <ChartCard title="Average Macronutrients by Diet Type" delay={0.1}>
                 <BarChart data={insights.average_macronutrients} />
               </ChartCard>
-              <ChartCard title="Nutrient Correlations" delay={0.2}>
+              <ChartCard title="Heatmap of Macronutrient Content by Diet Type" delay={0.2}>
                 {charts?.heatmap ? (
                   <img
                     src={charts.heatmap}
-                    alt="Nutrient Correlation Heatmap"
+                    alt="Heatmap of Macronutrient Content by Diet Type"
                     className="w-full h-full object-contain"
                   />
                 ) : (
                   <div className="secondary-text">Loading heatmap...</div>
                 )}
               </ChartCard>
-              <ChartCard title="Protein vs Carbs" delay={0.3}>
+              <ChartCard title="Top 5 Protein-Rich Recipes by Cuisine (per Diet Type)" delay={0.3}>
                 {charts?.scatter_plot ? (
                   <img
                     src={charts.scatter_plot}
-                    alt="Protein vs Carbs Scatter Plot"
+                    alt="Top 5 Protein-Rich Recipes by Cuisine (per Diet Type)"
                     className="w-full h-full object-contain"
                   />
                 ) : (
                   <div className="secondary-text">Loading scatter plot...</div>
                 )}
               </ChartCard>
-              <ChartCard title="Recipe Distribution" delay={0.4}>
+              <ChartCard title="Average Macronutrient Distribution by Diet Type" delay={0.4}>
                 {charts?.bar_chart ? (
                   <img
                     src={charts.bar_chart}
-                    alt="Recipe Distribution by Diet"
+                    alt="Average Macronutrient Distribution by Diet Type"
                     className="w-full h-full object-contain"
                   />
                 ) : (
@@ -296,13 +325,21 @@ const DashboardPremium = () => {
 
         {/* Recipes Table */}
         {recipes.length > 0 && (
+          
           <motion.section
             className="mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <h2 className="section-title mb-6">Top Protein-Rich Recipes</h2>
+            <h2 className="section-title mb-6">Recipes</h2>
+            {recipeMeta && (
+              <div className="text-sm text-gray-500 mb-4">
+                <p>Recipe generation time: {recipeMeta.execution_time}</p>
+                <p>Generated at: {recipeMeta.timestamp}</p>
+              </div>
+          )}
+
             <PremiumTable recipes={paginatedRecipes} />
 
             {/* Pagination */}
