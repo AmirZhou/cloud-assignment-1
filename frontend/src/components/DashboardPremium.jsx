@@ -244,7 +244,7 @@ const DashboardPremium = () => {
               title="Insight Generation Time"
               value={performanceData?.blob_total_time ? `${performanceData.blob_total_time}s` : (insights.execution_time || 'Loading...')}
               subtitle={performanceData?.last_processed ? 
-                `Processed: ${new Date(performanceData.last_processed).toLocaleTimeString()}` : undefined}
+                `Processed: ${new Date(performanceData.last_processed).toLocaleString()}` : undefined}
               color="147, 51, 234"
             />
           </motion.section>

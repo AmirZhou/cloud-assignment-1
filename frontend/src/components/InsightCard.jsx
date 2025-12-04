@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 const InsightCard = ({ icon, title, value, subtitle, color }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  const isPlainText = typeof value === 'string' || typeof value === 'number';
+  const ValueTag = isPlainText ? 'p' : 'div';
+
   return (
     <motion.div
       onMouseEnter={() => setIsHovered(true)}
@@ -16,7 +19,7 @@ const InsightCard = ({ icon, title, value, subtitle, color }) => {
         WebkitBackdropFilter: 'blur(20px)',
         border: `1px solid ${isHovered ? `rgba(${color}, 0.3)` : 'rgba(255, 255, 255, 0.08)'}`,
         borderRadius: '20px',
-        boxShadow: isHovered 
+        boxShadow: isHovered
           ? `0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(${color}, 0.1)`
           : '0 20px 40px rgba(0, 0, 0, 0.3)',
         transition: 'all 0.3s ease'
@@ -33,15 +36,19 @@ const InsightCard = ({ icon, title, value, subtitle, color }) => {
       }}>
         {title}
       </h4>
-      <p style={{
-        fontSize: '1.125rem',
-        fontWeight: 600,
-        color: `rgba(${color}, 0.95)`,
-        marginBottom: '0.25rem',
-        lineHeight: '1.4'
-      }}>
+
+      <ValueTag
+        style={{
+          fontSize: '1.125rem',
+          fontWeight: 600,
+          color: `rgba(${color}, 0.95)`,
+          marginBottom: '0.25rem',
+          lineHeight: '1.4'
+        }}
+      >
         {value}
-      </p>
+      </ValueTag>
+
       {subtitle && (
         <p style={{
           fontSize: '0.75rem',
