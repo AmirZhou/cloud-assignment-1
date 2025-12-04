@@ -1,10 +1,15 @@
 """
-Azure Function: Nutritional Insights API with separated endpoints
-Four main endpoints:
-1. /api/get-charts - Get visualizations (page load)
-2. /api/get-insights - Get analysis results (button click)
-3. /api/get-recipes - Get recipes with optional diet_type filter
+Azure Function: Nutritional Insights API with Redis Caching
+Four main endpoints (all using pre-computed results from Redis):
+1. /api/get-charts - Get visualizations (from cache)
+2. /api/get-insights - Get analysis results (from cache)
+3. /api/get-recipes - Get recipes with filters and pagination (from cache)
 4. /api/health - Health check endpoint
+
+PHASE 3 OPTIMIZATION:
+- Data cleaning happens ONCE in BlobTrigger function
+- All calculations happen ONCE in BlobTrigger function
+- API endpoints just READ from Redis cache (super fast!)
 """
 
 import azure.functions as func
@@ -13,18 +18,8 @@ import time
 import logging
 from datetime import datetime, timezone
 
-# Import shared modules for data processing
-from shared.blob_io import read_csv_from_blob
-from shared.processing import (
-    load_and_clean_data,
-    calculate_macronutrient_averages,
-    find_top5_protein_recipes,
-    diet_with_highest_avg_protein,
-    most_common_cuisines_per_diet,
-    calculate_ratios,
-    generate_insights_summary
-)
-from shared.chart_generator import ChartGenerator
+# Import shared modules
+from shared.redis_cache import RedisCache
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     """
@@ -32,13 +27,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     Supported routes:
     - GET /api/health → Health check endpoint
-    - GET /api/get-charts → Returns charts only
-    - GET /api/get-insights → Returns analysis insights only
-    - GET /api/get-recipes → Returns recipes (optional: ?diet_type=keto)
+    - GET /api/get-charts → Returns charts from cache
+    - GET /api/get-insights → Returns insights from cache
+    - GET /api/get-recipes → Returns recipes from cache (with filters & pagination)
     """
     
     # Get the action from route parameters
-    # Azure Functions passes route params like this: /api/{action}
     action = req.route_params.get('action', '').lower()
     
     logging.info(f"Request received for action: {action}")
@@ -58,54 +52,66 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         
         else:
             return error_response(
-                f"Unknown action: {action}. Valid actions: get-charts, get-insights, get-recipes",
+                f"Unknown action: {action}. Valid actions: health, get-charts, get-insights, get-recipes",
                 404
             )
     
     except Exception as e:
-        logging.error(f"❌ Error: {str(e)}", exc_info=True)
+        logging.error(f"Error: {str(e)}", exc_info=True)
         return error_response(str(e), 500)
 
 # ===== HANDLER 0: Health Check =====
 def get_health(req: func.HttpRequest) -> func.HttpResponse:
     """
     Health check endpoint
-    Returns the status of the API and its dependencies
+    Checks Redis connectivity and cache status
     """
     
     start_time = time.time()
     logging.info("Health check requested")
     
     try:
-        # Check Blob Storage connectivity
-        logging.info("  - Checking Blob Storage connection...")
+        # Check Redis connectivity
+        logging.info("  - Checking Redis connection...")
         try:
-            df = read_csv_from_blob()
-            blob_status = "connected"
-            data_info = f"{len(df)} rows, {len(df.columns)} columns"
-            logging.info(f"    ✓ Blob Storage connected - {data_info}")
+            redis = RedisCache()
+            redis_status = "connected"
+            
+            # Check if data has been processed
+            metadata_json = redis.get("metadata")
+            if metadata_json:
+                metadata = json.loads(metadata_json)
+                cache_info = {
+                    "last_processed": metadata.get("last_processed"),
+                    "total_recipes": metadata.get("total_recipes"),
+                    "diet_types": metadata.get("diet_types_count")
+                }
+            else:
+                cache_info = "No data processed yet - upload All_Diets.csv to trigger processing"
+            
+            logging.info(f"    ✓ Redis connected - Cache info: {cache_info}")
         except Exception as e:
-            blob_status = "error"
-            data_info = str(e)
-            logging.warning(f"    ✗ Blob Storage error: {str(e)}")
+            redis_status = "error"
+            cache_info = str(e)
+            logging.warning(f"    ✗ Redis error: {str(e)}")
         
         # Build response
         execution_time = time.time() - start_time
         timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         
         response_data = {
-            "status": "healthy" if blob_status == "connected" else "degraded",
+            "status": "healthy" if redis_status == "connected" else "degraded",
             "service": "Nutritional Insights API",
-            "version": "1.0.0",
+            "version": "2.0.0-redis",
             "timestamp": timestamp,
             "checks": {
-                "blob_storage": blob_status,
-                "data_available": data_info if blob_status == "connected" else "N/A"
+                "redis_cache": redis_status,
+                "cache_data": cache_info
             },
             "execution_time": f"{execution_time:.2f}s"
         }
         
-        status_code = 200 if blob_status == "connected" else 503
+        status_code = 200 if redis_status == "connected" else 503
         logging.info(f"Health check complete. Status: {response_data['status']}")
         
         return func.HttpResponse(
@@ -115,12 +121,12 @@ def get_health(req: func.HttpRequest) -> func.HttpResponse:
         )
     
     except Exception as e:
-        logging.error(f"Health check failed: {str(e)}", exc_info=True)
+        logging.error(f"✗ Health check failed: {str(e)}", exc_info=True)
         
         error_data = {
             "status": "unhealthy",
             "service": "Nutritional Insights API",
-            "version": "1.0.0",
+            "version": "2.0.0-redis",
             "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
             "error": str(e)
         }
@@ -131,130 +137,118 @@ def get_health(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json; charset=utf-8",
         )
 
-# ===== HANDLER 1: Get Charts =====
+# ===== HANDLER 1: Get Charts (FROM CACHE) =====
 def get_charts(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Generate and return visualization charts only
-    Called when page loads (for fast initial display)
+    Get pre-generated charts from Redis cache
+    NO data cleaning, NO calculations - just read from cache!
     
     Returns: Base64 encoded PNG images
     """
     
     start_time = time.time()
-    logging.info("Step 1: Generating charts...")
+    logging.info("Getting charts from Redis cache...")
     
     try:
-        # ===== Read and clean data =====
-        logging.info("  - Reading data from Blob Storage...")
-        df = read_csv_from_blob()
-        logging.info(f"    Data loaded: {len(df)} rows")
+        redis = RedisCache()
         
-        logging.info("  - Cleaning data...")
-        df = load_and_clean_data(df)
-        logging.info("    Data cleaned")
+        # Read pre-generated charts from Redis
+        logging.info("  - Reading bar chart from cache...")
+        bar_chart = redis.get("charts:bar_chart")
         
+        logging.info("  - Reading heatmap from cache...")
+        heatmap = redis.get("charts:heatmap")
         
-        # ===== Analyze data for charts =====
-        logging.info("  - Analyzing data...")
-        avg_macros = calculate_macronutrient_averages(df)
-        top5_protein_recipes = find_top5_protein_recipes(df)
-        logging.info("    Analysis complete")
+        logging.info("  - Reading scatter plot from cache...")
+        scatter_plot = redis.get("charts:scatter_plot")
         
+        # Check if all charts are available
+        if not all([bar_chart, heatmap, scatter_plot]):
+            logging.warning("Charts not found in cache !")
+            return error_response(
+                "Charts not ready. Please wait for data processing to complete. "
+                "Upload All_Diets.csv to trigger processing.",
+                503
+            )
         
-        # ===== Generate charts =====
-        logging.info("  - Generating visualizations...")
-        chart_gen = ChartGenerator()
+        # Get metadata for additional info
+        metadata_json = redis.get("metadata")
+        metadata = json.loads(metadata_json) if metadata_json else {}
         
-        bar_chart_base64 = chart_gen.generate_bar_chart(avg_macros)
-        logging.info("    ✓ Bar chart generated")
-        
-        heatmap_base64 = chart_gen.generate_heatmap(avg_macros)
-        logging.info("    ✓ Heatmap generated")
-        
-        scatter_plot_base64 = chart_gen.generate_scatter_plot(top5_protein_recipes)
-        logging.info("    ✓ Scatter plot generated")
-        
-        
-        # ===== Build response =====
         execution_time = time.time() - start_time
         timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         
         response_data = {
             "status": "success",
             "data": {
-                "bar_chart": f"data:image/png;base64,{bar_chart_base64}",
-                "heatmap": f"data:image/png;base64,{heatmap_base64}",
-                "scatter_plot": f"data:image/png;base64,{scatter_plot_base64}"
+                "bar_chart": f"data:image/png;base64,{bar_chart}",
+                "heatmap": f"data:image/png;base64,{heatmap}",
+                "scatter_plot": f"data:image/png;base64,{scatter_plot}"
             },
-            "execution_time": f"{execution_time:.2f}s",
-            "timestamp": timestamp,
-            "message": "Charts generated successfully"
+            "api_performance": {
+                "api_response_time_sec": round(execution_time, 2),
+                "timestamp": timestamp,
+                "cached": True,
+                "operations": "Read from Redis cache only"
+            },
+            "blob_trigger_performance": {
+                "last_processed": metadata.get("last_processed", "Unknown"),
+                "step_times": metadata.get("step_times", {}),
+                "total_recipes_processed": metadata.get("total_recipes", 0)
+            },
+            "performance_comparison": {
+                "api_vs_blob_speedup": f"{round(metadata.get('step_times', {}).get('total_processing_sec', 1) / max(execution_time, 0.01), 1)}x faster",
+                "note": "API reads pre-computed results from cache, BlobTrigger does all heavy processing"
+            },
+            "message": "Charts retrieved from cache (NO re-processing!)"
         }
         
-        logging.info(f"Charts ready. Execution time: {execution_time:.2f}s")
+        
+        logging.info(f"⚡ Charts ready in {execution_time:.2f}s (from cache)")
+        logging.info(f"  ✓  NO data cleaning performed")
+        logging.info(f"  ✓  NO calculations performed")
+        logging.info(f"  ✓  All data read from Redis cache")
         
         return success_response(response_data)
-    
+        
     except Exception as e:
-        logging.error(f"Error generating charts: {str(e)}", exc_info=True)
-        return error_response(f"Failed to generate charts: {str(e)}", 500)
+        logging.error(f"✗ Error retrieving charts: {str(e)}", exc_info=True)
+        return error_response(f"Failed to retrieve charts: {str(e)}", 500)
 
 
-# ===== HANDLER 2: Get Insights =====
+# ===== HANDLER 2: Get Insights (FROM CACHE) =====
 def get_insights(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Generate and return nutritional insights only
-    Called when user clicks "Get Insights" button
+    Get pre-calculated insights from Redis cache
+    NO data cleaning, NO calculations - just read from cache!
     
     Returns: Analysis data, statistics, findings
     """
     
     start_time = time.time()
-    logging.info("Step 2: Generating insights...")
+    logging.info("Getting insights from Redis cache...")
     
     try:
-        # ===== Read and clean data =====
-        logging.info("  - Reading data from Blob Storage...")
-        df = read_csv_from_blob()
-        logging.info(f"    Data loaded: {len(df)} rows")
+        redis = RedisCache()
         
-        logging.info("  - Cleaning data...")
-        df = load_and_clean_data(df)
-        logging.info("    Data cleaned")
+        # Read pre-calculated insights from Redis
+        logging.info("  - Reading insights from cache...")
+        insights_json = redis.get("insights:summary")
         
+        logging.info("  - Reading metadata from cache...")
+        metadata_json = redis.get("metadata")
         
-        # ===== Perform comprehensive analysis =====
-        logging.info("  - Analyzing nutritional data...")
+        if not insights_json:
+            logging.warning("Insights not found in cache !")
+            return error_response(
+                "Insights not ready. Please wait for data processing to complete. "
+                "Upload All_Diets.csv to trigger processing.",
+                503
+            )
         
-        avg_macros = calculate_macronutrient_averages(df)
-        logging.info("    ✓ Average macros calculated")
+        insights = json.loads(insights_json)
+        metadata = json.loads(metadata_json) if metadata_json else {}
         
-        top5_protein_recipes = find_top5_protein_recipes(df)
-        logging.info("    ✓ Top 5 protein recipes found")
-        
-        highest_protein_diet = diet_with_highest_avg_protein(df)
-        logging.info(f"    ✓ Highest protein diet: {highest_protein_diet}")
-        
-        common_cuisines = most_common_cuisines_per_diet(df)
-        logging.info("    ✓ Common cuisines identified")
-        
-        df = calculate_ratios(df)
-        logging.info("    ✓ Nutritional ratios calculated")
-        
-        
-        # ===== Generate insights summary =====
-        logging.info("  - Generating insights summary...")
-        insights = generate_insights_summary(
-            avg_macros,
-            top5_protein_recipes,
-            highest_protein_diet,
-            common_cuisines,
-            df
-        )
-        logging.info("    ✓ Insights summary generated")
-        
-        
-        # ===== Build response =====
         execution_time = time.time() - start_time
         timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         
@@ -263,117 +257,212 @@ def get_insights(req: func.HttpRequest) -> func.HttpResponse:
             "data": {
                 "insights": insights,
                 "data_stats": {
-                    "total_recipes": len(df),
-                    "diet_types": len(df['Diet_type'].unique()),
-                    "cuisines": len(df['Cuisine_type'].unique())
+                    "total_recipes": metadata.get("total_recipes", 0),
+                    "diet_types": metadata.get("diet_types_count", 0),
+                    "cuisines": metadata.get("cuisines_count", 0)
                 }
             },
-            "execution_time": f"{execution_time:.2f}s",
-            "timestamp": timestamp,
-            "message": "Insights generated successfully"
+            "api_performance": {
+                "api_response_time_sec": round(execution_time, 2),
+                "timestamp": timestamp,
+                "cached": True,
+                "operations": "Read from Redis cache only"
+            },
+            "blob_trigger_performance": {
+                "last_processed": metadata.get("last_processed", "Unknown"),
+                "step_times": metadata.get("step_times", {}),
+                "total_recipes_processed": metadata.get("total_recipes", 0)
+            },
+            "performance_comparison": {
+                "api_vs_blob_speedup": f"{round(metadata.get('step_times', {}).get('total_processing_sec', 1) / max(execution_time, 0.01), 1)}x faster",
+                "note": "API reads pre-computed results from cache, BlobTrigger does all heavy processing"
+            },
+            "message": "Insights retrieved from cache (NO re-processing!)"
         }
         
-        logging.info(f"Insights ready. Execution time: {execution_time:.2f}s")
+        logging.info(f"Insights ready in {execution_time:.2f}s (from cache)")
+        logging.info(f"  ✓  NO data cleaning performed")
+        logging.info(f"  ✓  NO calculations performed")
+        logging.info(f"  ✓  All data read from Redis cache")
         
         return success_response(response_data)
-    
+        
     except Exception as e:
-        logging.error(f"Error generating insights: {str(e)}", exc_info=True)
-        return error_response(f"Failed to generate insights: {str(e)}", 500)
+        logging.error(f"✗ Error retrieving insights: {str(e)}", exc_info=True)
+        return error_response(f"Failed to retrieve insights: {str(e)}", 500)
 
 
-# ===== HANDLER 3: Get Recipes =====
+# ===== HANDLER 3: Get Recipes (FROM CACHE + PAGINATION + KEYWORD SEARCH) =====
 def get_recipes(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Get recipes from dataset with optional filtering by diet type
+    Get recipes from Redis cache with filtering, keyword search, and pagination
+    NO data cleaning - just read pre-filtered results from cache!
     
     Query parameters:
-      - diet_type: Optional (e.g., ?diet_type=Keto)
+      - diet_type: Filter by diet (e.g., ?diet_type=Keto)
+      - cuisine_type: Filter by cuisine (e.g., ?cuisine_type=Italian)
+      - keyword: Search in recipe names (e.g., ?keyword=chicken)
+      - page: Page number (default: 1)
+      - page_size: Items per page (default: 20, max: 100)
     
     Example URLs:
-      - /api/get-recipes (all recipes)
-      - /api/get-recipes?diet_type=Keto (only Keto recipes)
-      - /api/get-recipes?diet_type=Vegan (only Vegan recipes)
-    
-    Returns: List of recipes with nutrition info
+      - /api/get-recipes
+      - /api/get-recipes?diet_type=Keto
+      - /api/get-recipes?keyword=chicken
+      - /api/get-recipes?diet_type=Keto&keyword=chicken
+      - /api/get-recipes?keyword=salad&page=2&page_size=10
+      - /api/get-recipes?cuisine_type=Italian&keyword=pasta
     """
     
     start_time = time.time()
-    logging.info("Step 3: Fetching recipes...")
+    logging.info("Getting recipes from Redis cache...")
     
     try:
-        # ===== Read and clean data =====
-        logging.info("  - Reading data from Blob Storage...")
-        df = read_csv_from_blob()
-        logging.info(f"    Data loaded: {len(df)} rows")
+        redis = RedisCache()
         
-        logging.info("  - Cleaning data...")
-        df = load_and_clean_data(df)
-        logging.info("    Data cleaned")
+        # Parse query parameters
+        diet_type = req.params.get('diet_type')
+        cuisine_type = req.params.get('cuisine_type')
+        keyword = req.params.get('keyword')
+        page = int(req.params.get('page', 1))
+        page_size = min(int(req.params.get('page_size', 20)), 100)  # Max 100 per page
         
-        
-        # ===== Apply optional filter =====
-        diet_type_filter = req.params.get('diet_type')
-        
-        if diet_type_filter:
-            # Filter by specific diet type
-            filtered_df = df[df['Diet_type'] == diet_type_filter]
-            logging.info(f"  - Filtering by diet type: {diet_type_filter}")
-            logging.info(f"    Found {len(filtered_df)} recipes")
+        # Determine cache key based on filters
+        if diet_type:
+            cache_key = f"recipes:diet:{diet_type}"
+            filter_info = f"diet_type={diet_type}"
+        elif cuisine_type:
+            cache_key = f"recipes:cuisine:{cuisine_type}"
+            filter_info = f"cuisine_type={cuisine_type}"
         else:
-            # Return all recipes
-            filtered_df = df
-            logging.info("  - No filter applied, returning all recipes")
+            cache_key = "recipes:all"
+            filter_info = "no filter (all recipes)"
         
+        # Add keyword to filter info
+        if keyword:
+            filter_info += f", keyword='{keyword}'"
         
-        # ===== Convert to recipe list =====
-        recipes_list = []
-        for _, row in filtered_df.iterrows():
-            recipes_list.append({
-                "recipe_name": row.get("Recipe_name", "Unknown"),
-                "diet_type": row.get("Diet_type", "Unknown"),
-                "cuisine_type": row.get("Cuisine_type", "Unknown"),
-                "protein_g": round(float(row.get("Protein(g)", 0)), 2),
-                "carbs_g": round(float(row.get("Carbs(g)", 0)), 2),
-                "fat_g": round(float(row.get("Fat(g)", 0)), 2)
-            })
+        logging.info(f"  - Fetching: {filter_info}")
+        logging.info(f"  - Cache key: {cache_key}")
         
-        logging.info(f"  - Converted {len(recipes_list)} recipes")
+        # Read from Redis cache
+        recipes_json = redis.get(cache_key)
         
+        if not recipes_json:
+            # Cache miss - check if it's because data hasn't been processed
+            all_recipes = redis.get("recipes:all")
+            if not all_recipes:
+                logging.warning("✗ No recipes in cache - data not processed yet !")
+                return error_response(
+                    "Recipes not ready. Upload All_Diets.csv to trigger processing.",
+                    503
+                )
+            
+            # Invalid filter value
+            logging.warning(f"✗ Cache miss for '{cache_key}' - invalid filter !")
+            return error_response(
+                f"No recipes found for {filter_info}. Check if the value is correct.",
+                404
+            )
         
-        # ===== Build response =====
+        recipes_list = json.loads(recipes_json)
+        logging.info(f"  ✓ Found {len(recipes_list)} recipes in cache")
+        
+        # ===== KEYWORD SEARCH (if provided) =====
+        if keyword:
+            keyword_lower = keyword.lower()
+            original_count = len(recipes_list)
+            
+            # Filter recipes by keyword in recipe name
+            recipes_list = [
+                recipe for recipe in recipes_list
+                if keyword_lower in recipe.get('recipe_name', '').lower()
+            ]
+            
+            filtered_count = len(recipes_list)
+            logging.info(f"Keyword search '{keyword}': {original_count} → {filtered_count} recipes")
+            
+            if filtered_count == 0:
+                logging.warning(f"✗ No recipes found matching keyword '{keyword}'")
+                return error_response(
+                    f"No recipes found matching keyword '{keyword}' in the selected category.",
+                    404
+                )
+        
+        # Implement pagination
+        total_count = len(recipes_list)
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_recipes = recipes_list[start_idx:end_idx]
+        
+        logging.info(f"  - Pagination: page {page}, showing {len(paginated_recipes)} items")
+        
+        # Get metadata
+        metadata_json = redis.get("metadata")
+        metadata = json.loads(metadata_json) if metadata_json else {}
+        
         execution_time = time.time() - start_time
         timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         
         response_data = {
             "status": "success",
             "data": {
-                "recipes": recipes_list,
-                "total_count": len(df),
-                "filtered_count": len(recipes_list),
-                "filter_applied": diet_type_filter if diet_type_filter else None
+                "recipes": paginated_recipes,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total_count": total_count,
+                    "total_pages": (total_count + page_size - 1) // page_size,
+                    "has_next": end_idx < total_count,
+                    "has_prev": page > 1
+                },
+                "filter_applied": {
+                    "diet_type": diet_type,
+                    "cuisine_type": cuisine_type,
+                    "keyword": keyword
+                }
             },
-            "execution_time": f"{execution_time:.2f}s",
-            "timestamp": timestamp,
-            "message": "Recipes fetched successfully"
+            "api_performance": {
+                "api_response_time_sec": round(execution_time, 2),
+                "timestamp": timestamp,
+                "cached": True,
+                "operations": "Read from cache + keyword search" if keyword else "Read from cache only"
+            },
+            "blob_trigger_performance": {
+                "last_processed": metadata.get("last_processed", "Unknown"),
+                "step_times": metadata.get("step_times", {}),
+                "total_recipes_processed": metadata.get("total_recipes", 0),
+                "diet_types_cached": metadata.get("diet_types_count", 0),
+                "cuisines_cached": metadata.get("cuisines_count", 0)
+            },
+            "performance_comparison": {
+                "api_vs_blob_speedup": f"{round(metadata.get('step_times', {}).get('total_processing_sec', 1) / max(execution_time, 0.01), 1)}x faster",
+                "note": "API reads pre-filtered results from cache, BlobTrigger pre-processes all filters"
+            },
+            "message": f"Recipes retrieved from cache for {filter_info}"
         }
         
-        logging.info(f"Recipes ready. Execution time: {execution_time:.2f}s")
+        logging.info(f"Recipes ready in {execution_time:.2f}s (from cache)")
+        logging.info(f"  ✓  NO data cleaning performed")
+        logging.info(f"  ✓  NO filtering performed (pre-cached)")
+        if keyword:
+            logging.info(f"Keyword search performed on cached data")
+        logging.info(f"  ✓  All data read from Redis cache")
         
         return success_response(response_data)
-    
+        
     except Exception as e:
-        logging.error(f"Error fetching recipes: {str(e)}", exc_info=True)
-        return error_response(f"Failed to fetch recipes: {str(e)}", 500)
+        logging.error(f"✗ Error retrieving recipes: {str(e)}", exc_info=True)
+        return error_response(f"Failed to retrieve recipes: {str(e)}", 500)
 
 
 # ===== UTILITY FUNCTIONS =====
 def success_response(data):
     """Helper function to return successful HTTP response"""
     return func.HttpResponse(
-        json.dumps(data),
+        json.dumps(data, ensure_ascii=False),
         status_code=200,
-        mimetype="application/json",
+        mimetype="application/json; charset=utf-8",
     )
 
 
@@ -384,8 +473,7 @@ def error_response(message, status_code):
             "status": "error",
             "message": message,
             "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-        }),
+        }, ensure_ascii=False),
         status_code=status_code,
-        mimetype="application/json",
+        mimetype="application/json; charset=utf-8",
     )
-
