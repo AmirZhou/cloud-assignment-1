@@ -14,6 +14,13 @@ import PaginationButton from './PaginationButton';
 import PerformanceMetric from './PerformanceMetric';
 import LoadingSpinner from './LoadingSpinner';
 
+const ALL_CUISINES = [
+  "american", "asian", "british", "caribbean", "central europe",
+  "chinese", "eastern europe", "french", "indian", "italian",
+  "japanese", "kosher", "mediterranean", "mexican", "middle eastern",
+  "nordic", "south american", "south east asian", "world"
+];
+
 const DashboardPremium = () => {
   const [insights, setInsights] = useState(null);
   const [recipes, setRecipes] = useState([]);
@@ -146,7 +153,7 @@ const DashboardPremium = () => {
       
       setRecipeMeta({
         execution_time: response.api_performance?.api_response_time_sec || 0,
-        timestamp: response.api_performance?.timestamp || new Date().toISOString()
+        timestamp: response.api_performance?.timestamp || new Date().toLocalString()
       });
       
       // Set performance data When api call returns
@@ -520,14 +527,11 @@ const DashboardPremium = () => {
                 onChange={(e) => setSelectedCuisine(e.target.value)}
               >
                 <option value="all">All Cuisines</option>
-                <option value="Asian">Asian</option>
-                <option value="Mediterranean">Mediterranean</option>
-                <option value="American">American</option>
-                <option value="Mexican">Mexican</option>
-                <option value="Italian">Italian</option>
-                <option value="Indian">Indian</option>
-                <option value="Middle Eastern">Middle Eastern</option>
-                <option value="French">French</option>
+                {ALL_CUISINES.map((cuisine) => (
+                  <option key={cuisine} value={cuisine}>
+                    {cuisine.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </option>
+                ))}
               </DarkGlassSelect>
               
               {searchQuery && (
