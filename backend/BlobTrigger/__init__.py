@@ -173,6 +173,27 @@ def main(blob: func.InputStream):
             recipes = prepare_recipes_list(filtered_df)
             redis.set(f"recipes:cuisine:{cuisine}", json.dumps(recipes))
             logging.info(f"Cached {len(recipes)} recipes for cuisine_type='{cuisine}'")
+
+
+        # Pre-cache by diet + cuisine combinations
+        combo_count = 0
+        
+        for diet_type in diet_types:
+            for cuisine in cuisines:
+                filtered_df = df[
+                    (df['Diet_type'] == diet_type) & 
+                    (df['Cuisine_type'] == cuisine)
+                ]
+
+                # Only cache if there are recipes for this combination
+                if len(filtered_df) > 0:
+                    recipes = prepare_recipes_list(filtered_df)
+                    cache_key = f"recipes:diet:{diet_type}:cuisine:{cuisine}"
+                    redis.set(cache_key, json.dumps(recipes))
+                    combo_count += 1
+                    logging.info(f"  ✓ Cached {len(recipes)} recipes for {diet_type} + {cuisine}")
+        
+        logging.info(f"Cached {combo_count} diet+cuisine combinations")
         
         step4_time = time.time() - step4_start
         total_processing_time = time.time() - processing_start_time

@@ -299,19 +299,11 @@ def get_recipes(req: func.HttpRequest) -> func.HttpResponse:
     NO data cleaning - just read pre-filtered results from cache!
     
     Query parameters:
-      - diet_type: Filter by diet (e.g., ?diet_type=Keto)
-      - cuisine_type: Filter by cuisine (e.g., ?cuisine_type=Italian)
+      - diet_type: Filter by diet (e.g., ?diet_type=keto)
+      - cuisine_type: Filter by cuisine (e.g., ?cuisine_type=middle eastern)
       - keyword: Search in recipe names (e.g., ?keyword=chicken)
       - page: Page number (default: 1)
-      - page_size: Items per page (default: 20, max: 100)
-    
-    Example URLs:
-      - /api/get-recipes
-      - /api/get-recipes?diet_type=Keto
-      - /api/get-recipes?keyword=chicken
-      - /api/get-recipes?diet_type=Keto&keyword=chicken
-      - /api/get-recipes?keyword=salad&page=2&page_size=10
-      - /api/get-recipes?cuisine_type=Italian&keyword=pasta
+      - page_size: Items per page (default: 20)
     """
     
     start_time = time.time()
@@ -325,10 +317,13 @@ def get_recipes(req: func.HttpRequest) -> func.HttpResponse:
         cuisine_type = req.params.get('cuisine_type')
         keyword = req.params.get('keyword')
         page = int(req.params.get('page', 1))
-        page_size = min(int(req.params.get('page_size', 20)), 100)  # Max 100 per page
+        page_size = int(req.params.get('page_size', 20))  
         
         # Determine cache key based on filters
-        if diet_type:
+        if diet_type and cuisine_type:
+            cache_key = f"recipes:diet:{diet_type}:cuisine:{cuisine_type}"
+            filter_info = f"diet_type={diet_type}, cuisine_type={cuisine_type}"
+        elif diet_type:
             cache_key = f"recipes:diet:{diet_type}"
             filter_info = f"diet_type={diet_type}"
         elif cuisine_type:
@@ -352,14 +347,22 @@ def get_recipes(req: func.HttpRequest) -> func.HttpResponse:
             # Cache miss - check if it's because data hasn't been processed
             all_recipes = redis.get("recipes:all")
             if not all_recipes:
-                logging.warning("✗ No recipes in cache - data not processed yet !")
+                logging.warning("✗ No recipes in cache - data not processed yet!")
                 return error_response(
                     "Recipes not ready. Upload All_Diets.csv to trigger processing.",
                     503
                 )
             
+            # No recipes found for given filters
+            if diet_type and cuisine_type:
+                logging.warning(f"✗ No recipes found for {diet_type} + {cuisine_type}")
+                return error_response(
+                    f"No recipes found for the combination: {diet_type} + {cuisine_type}.",
+                    404
+                )
+            
             # Invalid filter value
-            logging.warning(f"✗ Cache miss for '{cache_key}' - invalid filter !")
+            logging.warning(f"✗ Cache miss for '{cache_key}' - invalid filter!")
             return error_response(
                 f"No recipes found for {filter_info}. Check if the value is correct.",
                 404
