@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserButton } from '@clerk/clerk-react';
 import { fetchInsights, fetchRecipes, fetchCharts } from '../services/api';
 import BarChart from './BarChart';
 import InsightCard from './InsightCard';
@@ -34,10 +35,22 @@ const DashboardPremium = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   // Set performance and enhanced insights data
   const [performanceData, setPerformanceData] = useState(null);
   const [enhancedInsights, setEnhancedInsights] = useState(null);
+
+  // Track scroll position for sticky header animation
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const loadInsights = async () => {
     setLoading(true);
@@ -208,21 +221,57 @@ const DashboardPremium = () => {
 
   return (
     <div className="min-h-screen premium-dark-background">
-      {/* Premium Dark Header */}
-      <header className="dark-glassmorphic-header">
-        <div className="container mx-auto px-6 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="premium-title">
-              Nutritional Insights
-            </h1>
-            <p className="premium-subtitle">
-              Cloud-powered nutritional data analysis
-            </p>
-          </motion.div>
+      {/* Premium Dark Header - Sticky with shrink animation */}
+      <header className={`dark-glassmorphic-header sticky-header ${isScrolled ? 'header-scrolled' : ''}`}>
+        <div className={`container mx-auto px-6 header-content ${isScrolled ? 'py-3' : 'py-8'}`}>
+          <div className="flex justify-between items-center">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="header-title-container"
+            >
+              <h1 className={`premium-title ${isScrolled ? 'title-scrolled' : ''}`}>
+                Nutritional Insights
+              </h1>
+              <p className={`premium-subtitle ${isScrolled ? 'subtitle-scrolled' : ''}`}>
+                Cloud-powered nutritional data analysis
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex items-center"
+            >
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: `transition-all duration-300 ${isScrolled ? 'w-8 h-8' : 'w-10 h-10'}`,
+                    userButtonTrigger: 'focus:shadow-none focus:ring-2 focus:ring-white/20 rounded-full',
+                    userButtonPopoverCard: 'bg-[rgba(25,25,28,0.95)] backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl',
+                    userButtonPopoverActions: 'bg-transparent',
+                    userButtonPopoverActionButton: 'text-white/80 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200',
+                    userButtonPopoverActionButtonText: 'text-white/80',
+                    userButtonPopoverActionButtonIcon: 'text-white/60',
+                    userButtonPopoverFooter: 'hidden',
+                    userPreviewMainIdentifier: 'text-white/90 font-medium',
+                    userPreviewSecondaryIdentifier: 'text-white/50',
+                    userButtonPopoverMain: 'bg-transparent',
+                  },
+                  variables: {
+                    colorBackground: 'rgba(25, 25, 28, 0.95)',
+                    colorText: 'rgba(255, 255, 255, 0.9)',
+                    colorTextSecondary: 'rgba(255, 255, 255, 0.5)',
+                    colorPrimary: 'rgba(66, 133, 244, 0.9)',
+                    colorDanger: 'rgba(239, 68, 68, 0.9)',
+                    borderRadius: '12px',
+                  }
+                }}
+              />
+            </motion.div>
+          </div>
         </div>
       </header>
 
@@ -700,7 +749,6 @@ const DashboardPremium = () => {
 
         /* Dark Glassmorphic Header - Premium lighter grey */
         .dark-glassmorphic-header {
-          position: relative;
           background: linear-gradient(135deg, rgba(25, 25, 28, 0.7) 0%, rgba(20, 20, 23, 0.75) 100%);
           backdrop-filter: blur(30px);
           -webkit-backdrop-filter: blur(30px);
@@ -709,6 +757,30 @@ const DashboardPremium = () => {
             0 20px 40px rgba(0, 0, 0, 0.4),
             inset 0 1px 0 rgba(255, 255, 255, 0.08),
             inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sticky Header Styles */
+        .sticky-header {
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .header-scrolled {
+          background: linear-gradient(135deg, rgba(20, 20, 23, 0.95) 0%, rgba(15, 15, 18, 0.98) 100%);
+          box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .header-content {
+          transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .header-title-container {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Border illumination */
@@ -731,11 +803,27 @@ const DashboardPremium = () => {
           color: rgba(255, 255, 255, 0.95);
           letter-spacing: -0.02em;
           margin-bottom: 0.5rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .premium-title.title-scrolled {
+          font-size: 1.5rem;
+          margin-bottom: 0;
         }
 
         .premium-subtitle {
           color: rgba(255, 255, 255, 0.5);
           font-weight: 400;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          opacity: 1;
+          max-height: 30px;
+          overflow: hidden;
+        }
+
+        .premium-subtitle.subtitle-scrolled {
+          opacity: 0;
+          max-height: 0;
+          margin: 0;
         }
 
         .section-title {
@@ -782,6 +870,10 @@ const DashboardPremium = () => {
         @media (max-width: 768px) {
           .premium-title {
             font-size: 2rem;
+          }
+
+          .premium-title.title-scrolled {
+            font-size: 1.25rem;
           }
         }
       `}</style>
