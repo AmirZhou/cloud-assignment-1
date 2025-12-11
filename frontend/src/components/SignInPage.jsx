@@ -1,31 +1,48 @@
 import { SignIn } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
+import patternVideo from '../assets/pattern.mp4';
+import AnimatedTypeface from './AnimatedTypeface';
+import './AnimatedTypeface.css';
 
 const SignInPage = () => {
   return (
     <div className="sign-in-container">
+      {/* Background Video */}
+      <video
+        className="background-video"
+        autoPlay
+        loop
+        muted
+        playsInline
+      >
+        <source src={patternVideo} type="video/mp4" />
+      </video>
+
       <motion.div
         className="sign-in-content"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Logo */}
-        <div className="logo">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
-              fill="currentColor"
-            />
-          </svg>
+        {/* Animated Title */}
+        <div className="animated-title-wrapper">
+          <AnimatedTypeface
+            text="NUTRITIONAL"
+            animation="fade"
+            stagger={50}
+            colorScheme="solid"
+            size={28}
+            randomInterval={2500}
+          />
+          <AnimatedTypeface
+            text="INSIGHTS"
+            animation="fade"
+            stagger={50}
+            colorScheme="solid"
+            size={28}
+            randomInterval={2500}
+          />
         </div>
-
-        {/* Title */}
-        <h1 className="title">Nutritional Insights</h1>
         <p className="subtitle">Sign in to continue</p>
 
         {/* Sign In Form */}
@@ -59,6 +76,8 @@ const SignInPage = () => {
                 alert: 'clerk-alert',
                 alertText: 'clerk-alert-text',
                 formFieldErrorText: 'clerk-error',
+                otpCodeFieldInput: 'clerk-otp-input',
+                otpCodeField: 'clerk-otp-field',
               },
               variables: {
                 colorBackground: 'transparent',
@@ -90,32 +109,38 @@ const SignInPage = () => {
           justify-content: center;
           background: #fff;
           padding: 2rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .background-video {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: 0;
+          opacity: 0.5;
         }
 
         .sign-in-content {
           width: 100%;
           max-width: 320px;
+          position: relative;
+          z-index: 1;
         }
 
-        .logo {
-          width: 40px;
-          height: 40px;
-          margin: 0 auto 1.5rem;
-          color: #111;
+        .animated-title-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.25rem;
+          margin-bottom: 0.5rem;
         }
 
-        .logo svg {
-          width: 100%;
-          height: 100%;
-        }
-
-        .title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #111;
-          text-align: center;
-          margin: 0;
-          letter-spacing: -0.02em;
+        .animated-title-wrapper .animated-typeface {
+          gap: 0.15rem;
         }
 
         .subtitle {
@@ -157,29 +182,13 @@ const SignInPage = () => {
           width: 100% !important;
         }
 
-        /* Override all Clerk internal card/box styles */
+        /* Override Clerk card styles only */
         .cl-card,
-        .cl-cardBox,
-        .cl-internal-b3fm6y,
-        [class*="cl-card"],
-        [class*="cl-rootBox"],
-        [class*="cl-signIn-root"],
-        [class*="cl-internal"] {
+        .cl-cardBox {
           background: transparent !important;
           box-shadow: none !important;
           border: none !important;
           border-radius: 0 !important;
-        }
-
-        /* Nuclear option - remove shadow from everything in form wrapper */
-        .form-wrapper * {
-          box-shadow: none !important;
-        }
-
-        /* Re-apply specific shadows only where needed */
-        .clerk-social-btn,
-        .clerk-input {
-          box-shadow: none !important;
         }
 
         .clerk-hidden {
@@ -321,6 +330,35 @@ const SignInPage = () => {
         .clerk-error {
           color: #dc2626 !important;
           font-size: 0.75rem !important;
+        }
+
+        /* OTP styling - keep Clerk's structure, just clean visuals */
+        .cl-otpCodeField {
+          padding: 4px 0 !important;
+          overflow: visible !important;
+        }
+
+        .cl-otpCodeFieldInputs {
+          gap: 8px !important;
+          overflow: visible !important;
+        }
+
+        .cl-otpCodeFieldInput {
+          border: 1px solid #d1d5db !important;
+          border-radius: 8px !important;
+          background: #fff !important;
+          color: #111 !important;
+          width: 44px !important;
+          height: 52px !important;
+          font-size: 1.25rem !important;
+          font-weight: 500 !important;
+          box-shadow: none !important;
+        }
+
+        .cl-otpCodeFieldInput:focus {
+          border-color: #111 !important;
+          outline: none !important;
+          box-shadow: none !important;
         }
 
         /* Hide badge elements */

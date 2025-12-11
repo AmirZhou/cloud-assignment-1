@@ -250,23 +250,23 @@ const DashboardPremium = () => {
                   elements: {
                     avatarBox: `transition-all duration-300 ${isScrolled ? 'w-8 h-8' : 'w-10 h-10'}`,
                     userButtonTrigger: 'focus:shadow-none focus:ring-2 focus:ring-white/20 rounded-full',
-                    userButtonPopoverCard: 'bg-[rgba(25,25,28,0.95)] backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl',
-                    userButtonPopoverActions: 'bg-transparent',
-                    userButtonPopoverActionButton: 'text-white/80 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200',
-                    userButtonPopoverActionButtonText: 'text-white/80',
-                    userButtonPopoverActionButtonIcon: 'text-white/60',
+                    userButtonPopoverCard: 'clerk-popover-card',
+                    userButtonPopoverActions: 'clerk-popover-actions',
+                    userButtonPopoverActionButton: 'clerk-popover-action',
+                    userButtonPopoverActionButtonText: 'clerk-popover-action-text',
+                    userButtonPopoverActionButtonIcon: 'clerk-popover-action-icon',
                     userButtonPopoverFooter: 'hidden',
-                    userPreviewMainIdentifier: 'text-white/90 font-medium',
-                    userPreviewSecondaryIdentifier: 'text-white/50',
-                    userButtonPopoverMain: 'bg-transparent',
+                    userPreviewMainIdentifier: 'clerk-user-name',
+                    userPreviewSecondaryIdentifier: 'clerk-user-email',
+                    userButtonPopoverMain: 'clerk-popover-main',
                   },
                   variables: {
-                    colorBackground: 'rgba(25, 25, 28, 0.95)',
+                    colorBackground: 'rgba(20, 20, 22, 0.98)',
                     colorText: 'rgba(255, 255, 255, 0.9)',
                     colorTextSecondary: 'rgba(255, 255, 255, 0.5)',
-                    colorPrimary: 'rgba(66, 133, 244, 0.9)',
+                    colorPrimary: 'rgba(255, 255, 255, 0.9)',
                     colorDanger: 'rgba(239, 68, 68, 0.9)',
-                    borderRadius: '12px',
+                    borderRadius: '16px',
                   }
                 }}
               />
@@ -875,6 +875,66 @@ const DashboardPremium = () => {
           .premium-title.title-scrolled {
             font-size: 1.25rem;
           }
+        }
+
+        /* Clerk UserButton Popover Styles */
+        .clerk-popover-card {
+          background: rgba(20, 20, 22, 0.98) !important;
+          backdrop-filter: blur(20px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-radius: 16px !important;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .clerk-popover-main {
+          background: transparent !important;
+        }
+
+        .clerk-popover-actions {
+          background: transparent !important;
+          padding: 8px !important;
+        }
+
+        .clerk-popover-action {
+          background: transparent !important;
+          border-radius: 10px !important;
+          transition: all 0.15s ease !important;
+          padding: 10px 12px !important;
+          color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .clerk-popover-action * {
+          color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .clerk-popover-action:hover {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: rgba(255, 255, 255, 1) !important;
+        }
+
+        .clerk-popover-action:hover * {
+          color: rgba(255, 255, 255, 1) !important;
+        }
+
+        .clerk-popover-action-text {
+          color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .clerk-popover-action-icon {
+          color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .clerk-popover-action-icon svg {
+          color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .clerk-user-name {
+          color: rgba(255, 255, 255, 0.95) !important;
+          font-weight: 500 !important;
+        }
+
+        .clerk-user-email {
+          color: rgba(255, 255, 255, 0.5) !important;
         }
       `}</style>
     </div>

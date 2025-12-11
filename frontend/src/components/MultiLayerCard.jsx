@@ -30,6 +30,7 @@ const MultiLayerCard = ({ children }) => {
           position: relative;
           transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
+          height: 100%;
         }
 
         .multi-layer-container:hover {
@@ -51,6 +52,9 @@ const MultiLayerCard = ({ children }) => {
             0 50px 100px rgba(0, 0, 0, 0.9),
             0 25px 50px rgba(0, 0, 0, 0.7),
             0 12px 25px rgba(0, 0, 0, 0.5);
+          height: 100%;
+          display: flex;
+          flex-direction: column;
         }
 
         /* Outer rim light - sharper, more defined */
@@ -136,6 +140,9 @@ const MultiLayerCard = ({ children }) => {
           background: transparent;
           border-radius: calc(var(--radius) - var(--outer-border-width));
           padding: var(--gap-between-borders);
+          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
 
         /* INNER BORDER - Animated rim light */
@@ -151,6 +158,9 @@ const MultiLayerCard = ({ children }) => {
           padding: var(--inner-border-width);
           box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
 
         /* Inner rim light - always visible but subtle */
@@ -234,6 +244,9 @@ const MultiLayerCard = ({ children }) => {
           border-radius: calc(var(--radius) - var(--outer-border-width) - var(--gap-between-borders) - var(--inner-border-width));
           overflow: hidden;
           transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
 
         /* Subtle ambient glow on hover */
@@ -298,6 +311,7 @@ const MultiLayerCard = ({ children }) => {
           position: relative;
           padding: 1.5rem;
           z-index: 1;
+          flex: 1;
         }
 
         @media (max-width: 768px) {
