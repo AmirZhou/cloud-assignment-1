@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Animated Typeface System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .brand-text {
+            display: flex;
+            gap: 8px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .char-container {
+            width: 60px;
+            height: 80px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .char-container:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Animation classes */
+        .draw-in {
+            stroke-dasharray: 300;
+            stroke-dashoffset: 300;
+            animation: drawPath 1.5s ease forwards;
+        }
+        
+        @keyframes drawPath {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        .fade-fill {
+            fill: transparent;
+            animation: fillIn 0.5s ease 1s forwards;
+        }
+        
+        @keyframes fillIn {
+            to {
+                fill: #fff;
+            }
+        }
+        
+        .morph-hover:hover path {
+            d: path('M 10 60 L 10 20 L 35 20 L 35 60');
+        }
+        
+        .grid-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            margin-top: 60px;
+            padding: 40px;
+            background: #1a1a1a;
+            border-radius: 12px;
+        }
+        
+        .char-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .char-cell:hover {
+            background: #2a2a2a;
+            transform: translateY(-4px);
+        }
+        
+        .controls {
+            margin: 40px 0;
+            display: flex;
+            gap: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin: 0 0 20px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .description {
+            color: #888;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Custom Animated Typeface</h1>
+        <p class="description">
+            A modular SVG character system designed for animation. Each character is built on a 50x70 grid 
+            with consistent stroke weights and geometric construction. Click characters to see individual animations.
+        </p>
+        
+        <div class="controls">
+            <button onclick="animateSequence()">Animate Sequence</button>
+            <button onclick="randomAnimation()">Random Animation</button>
+            <button onclick="resetAll()">Reset</button>
+        </div>
+        
+        <!-- Main display showing animated brand name -->
+        <div class="brand-text" id="brandDisplay"></div>
+        
+        <!-- Full character set grid -->
+        <div class="grid-preview" id="charGrid"></div>
+    </div>
+    
+    <svg style="display: none">
+        <!-- Define reusable character paths -->
+        <defs>
+            <!-- Letter A -->
+            <g id="char-A">
+                <path d="M 5 70 L 25 10 L 45 70 M 12 50 L 38 50" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter B -->
+            <g id="char-B">
+                <path d="M 10 70 L 10 10 L 35 10 Q 45 10 45 20 Q 45 30 35 30 L 10 30 L 37 30 Q 47 30 47 40 Q 47 50 37 50 Q 47 50 47 60 Q 47 70 37 70 L 10 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter C -->
+            <g id="char-C">
+                <path d="M 45 20 Q 45 10 35 10 L 20 10 Q 10 10 10 20 L 10 60 Q 10 70 20 70 L 35 70 Q 45 70 45 60" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter D -->
+            <g id="char-D">
+                <path d="M 10 70 L 10 10 L 30 10 Q 45 10 45 25 L 45 55 Q 45 70 30 70 Z" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter E -->
+            <g id="char-E">
+                <path d="M 45 10 L 10 10 L 10 70 L 45 70 M 10 40 L 40 40" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter F -->
+            <g id="char-F">
+                <path d="M 45 10 L 10 10 L 10 70 M 10 40 L 40 40" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter G -->
+            <g id="char-G">
+                <path d="M 45 20 Q 45 10 35 10 L 20 10 Q 10 10 10 20 L 10 60 Q 10 70 20 70 L 35 70 Q 45 70 45 60 L 45 45 L 30 45" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter H -->
+            <g id="char-H">
+                <path d="M 10 10 L 10 70 M 40 10 L 40 70 M 10 40 L 40 40" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter I -->
+            <g id="char-I">
+                <path d="M 15 10 L 35 10 M 25 10 L 25 70 M 15 70 L 35 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter J -->
+            <g id="char-J">
+                <path d="M 20 10 L 40 10 M 30 10 L 30 60 Q 30 70 20 70 Q 10 70 10 60" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter K -->
+            <g id="char-K">
+                <path d="M 10 10 L 10 70 M 45 10 L 10 40 L 45 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter L -->
+            <g id="char-L">
+                <path d="M 10 10 L 10 70 L 45 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter M -->
+            <g id="char-M">
+                <path d="M 5 70 L 5 10 L 25 40 L 45 10 L 45 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter N -->
+            <g id="char-N">
+                <path d="M 10 70 L 10 10 L 40 70 L 40 10" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter O -->
+            <g id="char-O">
+                <ellipse cx="25" cy="40" rx="20" ry="30" 
+                         stroke="currentColor" 
+                         stroke-width="3" 
+                         fill="none"/>
+            </g>
+            
+            <!-- Letter P -->
+            <g id="char-P">
+                <path d="M 10 70 L 10 10 L 35 10 Q 45 10 45 20 Q 45 30 35 30 L 10 30" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter Q -->
+            <g id="char-Q">
+                <ellipse cx="25" cy="40" rx="20" ry="30" 
+                         stroke="currentColor" 
+                         stroke-width="3" 
+                         fill="none"/>
+                <path d="M 35 55 L 45 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter R -->
+            <g id="char-R">
+                <path d="M 10 70 L 10 10 L 35 10 Q 45 10 45 20 Q 45 30 35 30 L 10 30 M 30 30 L 45 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter S -->
+            <g id="char-S">
+                <path d="M 40 20 Q 40 10 30 10 L 20 10 Q 10 10 10 20 Q 10 30 20 30 L 30 30 Q 40 30 40 40 Q 40 50 40 60 Q 40 70 30 70 L 20 70 Q 10 70 10 60" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter T -->
+            <g id="char-T">
+                <path d="M 5 10 L 45 10 M 25 10 L 25 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter U -->
+            <g id="char-U">
+                <path d="M 10 10 L 10 55 Q 10 70 25 70 Q 40 70 40 55 L 40 10" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter V -->
+            <g id="char-V">
+                <path d="M 5 10 L 25 70 L 45 10" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter W -->
+            <g id="char-W">
+                <path d="M 2 10 L 12 70 L 25 40 L 38 70 L 48 10" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter X -->
+            <g id="char-X">
+                <path d="M 10 10 L 40 70 M 40 10 L 10 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"/>
+            </g>
+            
+            <!-- Letter Y -->
+            <g id="char-Y">
+                <path d="M 10 10 L 25 40 L 40 10 M 25 40 L 25 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            
+            <!-- Letter Z -->
+            <g id="char-Z">
+                <path d="M 10 10 L 40 10 L 10 70 L 40 70" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+        </defs>
+    </svg>
+    
+    <script>
+        // Character mapping
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const brandName = 'RAHC'; // Change this to your brand name
+        
+        // Animation types
+        const animations = {
+            draw: (svg) => {
+                const paths = svg.querySelectorAll('path, ellipse');
+                paths.forEach(path => {
+                    path.classList.add('draw-in');
+                });
+            },
+            fade: (svg) => {
+                svg.style.opacity = '0';
+                svg.style.animation = 'fadeIn 0.5s ease forwards';
+            },
+            slide: (svg) => {
+                svg.style.transform = 'translateY(-20px)';
+                svg.style.opacity = '0';
+                svg.style.animation = 'slideIn 0.5s ease forwards';
+            },
+            scale: (svg) => {
+                svg.style.transform = 'scale(0)';
+                svg.style.animation = 'scaleIn 0.5s ease forwards';
+            },
+            rotate: (svg) => {
+                svg.style.transform = 'rotate(-180deg)';
+                svg.style.animation = 'rotateIn 0.5s ease forwards';
+            }
+        };
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes scaleIn {
+                to { transform: scale(1); }
+            }
+            @keyframes rotateIn {
+                to { transform: rotate(0); }
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+            .pulse {
+                animation: pulse 1s ease infinite;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Create character function
+        function createCharacter(char, index = 0, animationType = 'draw') {
+            const container = document.createElement('div');
+            container.className = 'char-container';
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 50 80');
+            svg.setAttribute('width', '50');
+            svg.setAttribute('height', '80');
+            svg.style.color = `hsl(${270 + index * 15}, 70%, 70%)`;
+            
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#char-${char}`);
+            svg.appendChild(use);
+            
+            container.appendChild(svg);
+            
+            // Add click animation
+            container.addEventListener('click', () => {
+                const animTypes = Object.keys(animations);
+                const randomAnim = animTypes[Math.floor(Math.random() * animTypes.length)];
+                resetElement(svg);
+                setTimeout(() => animations[randomAnim](svg), 10);
+            });
+            
+            return container;
+        }
+        
+        // Reset element
+        function resetElement(element) {
+            element.style.animation = '';
+            element.style.transform = '';
+            element.style.opacity = '';
+            const paths = element.querySelectorAll('path, ellipse');
+            paths.forEach(path => {
+                path.classList.remove('draw-in');
+            });
+        }
+        
+        // Initialize brand display
+        function initBrandDisplay() {
+            const display = document.getElementById('brandDisplay');
+            display.innerHTML = '';
+            
+            brandName.split('').forEach((char, i) => {
+                const charElement = createCharacter(char, i);
+                display.appendChild(charElement);
+            });
+        }
+        
+        // Initialize character grid
+        function initCharGrid() {
+            const grid = document.getElementById('charGrid');
+            grid.innerHTML = '';
+            
+            characters.split('').forEach((char, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'char-cell';
+                
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 50 80');
+                svg.setAttribute('width', '50');
+                svg.setAttribute('height', '80');
+                svg.style.color = '#888';
+                
+                const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+                use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#char-${char}`);
+                svg.appendChild(use);
+                
+                cell.appendChild(svg);
+                
+                cell.addEventListener('mouseenter', () => {
+                    svg.style.color = `hsl(${270 + i * 15}, 70%, 70%)`;
+                    svg.classList.add('pulse');
+                });
+                
+                cell.addEventListener('mouseleave', () => {
+                    svg.style.color = '#888';
+                    svg.classList.remove('pulse');
+                });
+                
+                grid.appendChild(cell);
+            });
+        }
+        
+        // Animate sequence
+        function animateSequence() {
+            const chars = document.querySelectorAll('.brand-text .char-container svg');
+            chars.forEach((svg, i) => {
+                resetElement(svg);
+                setTimeout(() => {
+                    animations.draw(svg);
+                }, i * 100);
+            });
+        }
+        
+        // Random animation
+        function randomAnimation() {
+            const chars = document.querySelectorAll('.brand-text .char-container svg');
+            const animTypes = Object.keys(animations);
+            
+            chars.forEach((svg) => {
+                resetElement(svg);
+                const randomAnim = animTypes[Math.floor(Math.random() * animTypes.length)];
+                const randomDelay = Math.random() * 500;
+                setTimeout(() => animations[randomAnim](svg), randomDelay);
+            });
+        }
+        
+        // Reset all
+        function resetAll() {
+            const chars = document.querySelectorAll('.brand-text .char-container svg');
+            chars.forEach(svg => resetElement(svg));
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initBrandDisplay();
+            initCharGrid();
+            setTimeout(animateSequence, 500);
+        });
+    </script>
+</body>
+</html>
